@@ -367,7 +367,7 @@ void CPda::OnStateSwitch(u32 S, u32 oldState)
         if (joystick != BI_NONE && HudItemData())
         {
             CBoneInstance* bi = &HudItemData()->m_model->LL_GetBoneInstance(joystick);
-            if (bi)
+            if (false && bi)
                 bi->set_callback(bctCustom, JoystickCallback, this);
         }
     }
@@ -402,6 +402,16 @@ constexpr float _inertion(const float _val_cur, const float _val_trgt, const flo
 {
     const float friction_i = 1.f - _friction;
     return _val_cur * _friction + _val_trgt * friction_i;
+}
+
+void CPda::PlayAnimIdle()
+{
+	const auto pActor = smart_cast<CActor*>(H_Parent());
+
+	string_path guns_pda_anim;
+	xr_strconcat(guns_pda_anim, "anm_idle", anm_prefix, (pActor && (pActor->get_state() & mcAnyMove)) ? "_moving" : "");
+	
+	PlayHUDMotion({ guns_pda_anim, "anm_idle" }, true, GetState());
 }
 
 void CPda::JoystickCallback(CBoneInstance* B)

@@ -215,6 +215,7 @@ public:
     }
 
     virtual void on_renderable_Render() = 0;
+	IC const std::string GetCurrentMotion() const { return *m_current_motion; }
 
 public:
     class CWeaponBobbing

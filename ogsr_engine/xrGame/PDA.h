@@ -79,6 +79,9 @@ public:
     virtual void OnActiveItem() override;
     virtual void OnHiddenItem() override;
 
+	virtual void PlayAnimIdle() override;
+	const char* anm_prefix = "";
+
     bool m_bZoomed{};
     float m_thumb_rot[2]{};
 
