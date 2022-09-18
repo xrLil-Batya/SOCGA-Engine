@@ -517,13 +517,7 @@ bool CUIPdaWnd::OnKeyboard(int dik, EUIMessages keyboard_action)
                     }
                     else if (pda->m_bZoomed)
                     {
-                        pda->m_bZoomed = false;
                         HUD().GetUI()->SetMainInputReceiver(nullptr, false);
-                        return true;
-                    }
-                    else
-                    {
-                        Actor()->inventory().Activate(NO_ACTIVE_SLOT);
                         return true;
                     }
                 }

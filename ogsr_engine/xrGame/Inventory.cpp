@@ -599,9 +599,24 @@ bool CInventory::Action(s32 cmd, u32 flags)
         }
     }
 
+	bool b_send_event = false;
+	if (cmd == kQUIT) // "Hack" to make Esc key open main menu instead of simply hiding the PDA UI
+	{
+		if(const auto pda = smart_cast<CPda*>(ActiveItem()); pda && pda->Is3DPDA() && pda->GetState() != CPda::eHiding && pda->GetState() != CPda::eHidden)
+		{
+			if (pda->m_bZoomed)
+			{
+				pda->m_bZoomed = false;
+				HUD().GetUI()->SetMainInputReceiver(nullptr, false);
+				return true;
+			}
+			b_send_event = true;
+			Activate(NO_ACTIVE_SLOT);
+		}
+	}
+
     if (m_iActiveSlot < m_slots.size() && m_slots[m_iActiveSlot].m_pIItem && m_slots[m_iActiveSlot].m_pIItem->Action(cmd, flags))
         return true;
-    bool b_send_event = false;
     switch (cmd)
     {
     case kWPN_1:

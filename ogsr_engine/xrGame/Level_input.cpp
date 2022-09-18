@@ -17,7 +17,7 @@
 
 #include "actor.h"
 #include "huditem.h"
-#include "ui/UIDialogWnd.h"
+#include "ui/UIPdaWnd.h"
 #include "clsid_game.h"
 #include "../xr_3da/xr_input.h"
 #include "saved_game_wrapper.h"
@@ -26,6 +26,7 @@
 #include "script_callback_ex.h"
 #include "GamePersistent.h"
 #include "MainMenu.h"
+#include "UIGameSP.h"
 
 #ifdef DEBUG
 #include "ai/monsters/BaseMonster/base_monster.h"
@@ -121,7 +122,6 @@ public:
 
 // Обработка нажатия клавиш
 extern bool g_block_pause;
-
 void CLevel::IR_OnKeyboardPress(int key)
 {
     if (GamePersistent().OnKeyboardPress(key))
@@ -133,6 +133,7 @@ void CLevel::IR_OnKeyboardPress(int key)
     //.	if (DIK_F11 == key)		vtune.disable();
 
     EGameActions _curr = get_binded_action(key);
+
     switch (_curr)
     {
     case kSCREENSHOT:
@@ -145,14 +146,16 @@ void CLevel::IR_OnKeyboardPress(int key)
         return;
         break;
 
-    case kQUIT: {
+    case kQUIT:
+	{
+		const auto game_sp = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
         if (b_ui_exist && HUD().GetUI()->MainInputReceiver() && (MainMenu()->IsActive() || !Device.Paused()))
         {
             if (HUD().GetUI()->MainInputReceiver()->IR_OnKeyboardPress(key))
                 return; // special case for mp and main_menu
             HUD().GetUI()->StartStopMenu(HUD().GetUI()->MainInputReceiver(), true);
         }
-        else
+        else if (!(game_sp && game_sp->PdaMenu && game_sp->PdaMenu->IsShown()))
             Console->Execute("main_menu");
         return;
     }
