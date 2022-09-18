@@ -460,7 +460,8 @@ public:
     bool CanRun();
     void StopAnyMove();
 
-    bool AnyAction() { return (mstate_real & mcAnyAction) != 0; };
+	IC const bool AnyAction() const { return mstate_real & mcAnyAction; };
+	IC const bool AnyMove() const { return mstate_real & mcAnyMove; };
 
     bool is_jump();
     bool is_crouch();

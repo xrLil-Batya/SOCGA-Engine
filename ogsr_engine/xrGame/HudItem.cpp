@@ -263,6 +263,8 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
         PlayAnimSprintEnd();
     else if (S != eIdle)
         SprintType = false;
+	
+	g_player_hud->updateMovementLayerState();
 }
 
 bool CHudItem::Activate(bool now)
@@ -276,6 +278,12 @@ void CHudItem::Deactivate(bool now)
 {
     Hide(now);
     OnHiddenItem();
+}
+
+bool CHudItem::NeedBlendAnm() 
+{
+	u32 state = GetState();
+	return (state != eIdle && state != eHidden);
 }
 
 void CHudItem::UpdateCL()
