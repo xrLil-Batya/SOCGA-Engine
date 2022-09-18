@@ -788,14 +788,23 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
     case eIdle: switch2_Idle(); break; // Keep showing idle
     case eMisfire: SwitchState(eIdle); break; // End of misfire animation
     case eDeviceSwitch: SwitchState(eIdle); break; // End of device switch animation
+	
+	case eFire:
+	case eFire2:
+		SwitchState(eIdle);
+		break;
+
     default: inherited::OnAnimationEnd(state);
     }
 }
 
 void CWeaponMagazined::switch2_Idle()
 {
-    SetPending(FALSE);
-    PlayAnimIdle();
+	if(!CanAssignIdleAnimNow())
+		return;
+
+    SetPending(false);
+	PlayAnimIdle();
 }
 
 #ifdef DEBUG
@@ -1308,6 +1317,16 @@ void CWeaponMagazined::ApplySilencerKoeffs()
     fireDispersionBase *= FDB_k;
     camDispersion *= CD_k;
     camDispersionInc *= CD_k;
+}
+
+const bool CWeaponMagazined::CanAssignIdleAnimNow() const
+{
+	const std::string anm_shoot = "anm_shoot";
+	const bool AllowIdleAnimWhileShooting = READ_IF_EXISTS(pSettings, r_bool, HudSection().c_str(), "cyclic_shoot_animations", false);
+
+	return (m_current_motion_def == nullptr) || 
+		(std::string(m_current_motion.c_str()).substr(0, anm_shoot.length()) != anm_shoot) ||
+		AllowIdleAnimWhileShooting;
 }
 
 //виртуальные функции для проигрывания анимации HUD

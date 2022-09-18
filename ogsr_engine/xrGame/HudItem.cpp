@@ -4,7 +4,6 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "HudItem.h"
 #include "HudSound.h"
 #include "physic_item.h"
 #include "actor.h"
@@ -15,7 +14,7 @@
 #include "../xr_3da/gamemtllib.h"
 #include <array>
 #include "HUDManager.h"
-#include "Weapon.h"
+#include "WeaponMagazined.h"
 #include "ActorCondition.h"
 #include "Missile.h"
 #include "../xr_3da/x_ray.h"
@@ -511,6 +510,9 @@ void CHudItem::PlayAnimSprintEnd()
 
 bool CHudItem::TryPlayAnimIdle()
 {
+	if(const auto wpn = smart_cast<CWeaponMagazined*>(this); wpn && !wpn->CanAssignIdleAnimNow())
+		return true;
+
     if (!IsZoomed() || !smart_cast<CWeapon*>(this))
     {
         if (auto pActor = smart_cast<CActor*>(object().H_Parent()))
