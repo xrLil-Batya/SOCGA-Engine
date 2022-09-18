@@ -516,8 +516,9 @@ void fill_vid_mode_list(CHW* _hw)
         DXGI_MODE_DESC& desc = modes[i];
         string32 str;
 
-        if (desc.Width < 800)
-            continue;
+		//-> Удаляем поддержку 4:3
+		if(desc.Width <= 800.f || (static_cast<float>(desc.Width) / static_cast<float>(desc.Height) <= (1024.f / 768.f + 0.01f)))
+			continue;
 
         xr_sprintf(str, sizeof(str), "%dx%d", desc.Width, desc.Height);
 
