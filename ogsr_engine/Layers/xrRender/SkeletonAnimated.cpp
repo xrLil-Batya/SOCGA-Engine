@@ -805,8 +805,15 @@ void CKinematicsAnimated::LL_BuldBoneMatrixDequatize(const CBoneData* bd, u8 cha
         keys.blends[channel][b_count] = B;
         CMotion& M = *LL_GetMotion(B->motionID, SelfID);
         Dequantize(*D, *B, M);
-        QR2Quat(M._keysR[0], BK[channel][b_count].Q);
-        if (M.test_flag(flTKeyPresent))
+
+		if(M.test_flag(1<<6))
+			QR2QuatCpp(M._keysRCpp[0], BK[channel][b_count].Q);
+		else
+			QR2Quat(M._keysR[0], BK[channel][b_count].Q);
+
+		if(M.test_flag(1<<6))
+			QTCpp(M._keysTCpp[0], BK[channel][b_count].T);
+        else if (M.test_flag(flTKeyPresent))
         {
             if (M.test_flag(flTKey16IsBit))
                 QT16_2T(M._keysT16[0], M, BK[channel][b_count].T);
@@ -815,6 +822,7 @@ void CKinematicsAnimated::LL_BuldBoneMatrixDequatize(const CBoneData* bd, u8 cha
         }
         else
             BK[channel][b_count].T.set(M._initT);
+
         ++b_count;
     }
     for (u16 j = 0; MAX_CHANNELS > j; ++j)

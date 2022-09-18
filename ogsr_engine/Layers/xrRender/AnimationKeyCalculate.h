@@ -77,6 +77,21 @@ IC void QT16_2T(const CKeyQT16& K, const CMotion& M, Fvector& T)
     T.z = float(K.z1) * M._sizeT.z + M._initT.z;
 }
 
+IC void QR2QuatCpp(const CKeyQRCpp& K, Fquaternion& Q)
+{
+	Q.x = K.x;
+	Q.y = K.y;
+	Q.z = K.z;
+	Q.w = K.w;
+}
+
+IC void QTCpp(const CKeyQTCpp& K, Fvector& T)
+{
+	T.x = K.x;
+	T.y = K.y;
+	T.z = K.z;
+}
+
 IC void Dequantize(CKey& K, const CBlend& BD, const CMotion& M)
 {
     CKey* D = &K;
@@ -87,7 +102,19 @@ IC void Dequantize(CKey& K, const CBlend& BD, const CMotion& M)
     float delta = time - float(frame);
     u32 count = M.get_count();
     // rotation
-    if (M.test_flag(flRKeyAbsent))
+    if (M.test_flag(1<<6))
+	{
+		Fquaternion	Q1, Q2;
+		
+		auto K1r = &M._keysRCpp[(frame + 0) % count];
+		auto K2r = &M._keysRCpp[(frame + 1) % count];
+
+		QR2QuatCpp(*K1r, Q1);
+		QR2QuatCpp(*K2r, Q2);
+		
+		D->Q.slerp	(Q1,Q2,clampr(delta,0.f,1.f));
+	}
+	else if (M.test_flag(flRKeyAbsent))
     {
         const CKeyQR* K = &M._keysR[0];
         QR2Quat(*K, D->Q);
@@ -103,7 +130,19 @@ IC void Dequantize(CKey& K, const CBlend& BD, const CMotion& M)
     }
 
     // translate
-    if (M.test_flag(flTKeyPresent))
+	if (M.test_flag(1<<6))
+	{
+		Fvector T1,T2;
+		
+		const auto K1t = &M._keysTCpp[(frame + 0) % count];
+		const auto K2t = &M._keysTCpp[(frame + 1) % count];
+		
+		QTCpp(*K1t, T1);
+		QTCpp(*K2t, T2);
+		
+		D->T.lerp	(T1,T2,delta);
+	}
+    else if (M.test_flag(flTKeyPresent))
     {
         Fvector T1, T2;
         if (M.test_flag(flTKey16IsBit))

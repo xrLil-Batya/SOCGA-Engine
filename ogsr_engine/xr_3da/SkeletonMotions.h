@@ -38,6 +38,14 @@ struct CKeyQT16
 {
     s16 x1, y1, z1;
 };
+struct CKeyQRCpp
+{
+	float x{}, y{}, z{}, w{}; // rotation
+};
+struct CKeyQTCpp
+{
+	float x{}, y{}, z{};
+};
 /*
 struct  CKeyQT
 {
@@ -57,6 +65,9 @@ class ENGINE_API CMotion
     };
 
 public:
+	std::vector<CKeyQRCpp> _keysRCpp;
+	std::vector<CKeyQTCpp> _keysTCpp;
+
     ref_smem<CKeyQR> _keysR;
     ref_smem<CKeyQT8> _keysT8;
     ref_smem<CKeyQT16> _keysT16;
@@ -92,6 +103,12 @@ public:
             sz += _keysT8.size() * sizeof(CKeyQT8) / _keysT8.ref_count();
         if (_keysT16.size())
             sz += _keysT16.size() * sizeof(CKeyQT16) / _keysT16.ref_count();
+
+        if (_keysRCpp.size())
+            sz += _keysRCpp.size() * sizeof(CKeyQRCpp);
+        if (_keysTCpp.size())
+            sz += _keysTCpp.size() * sizeof(CKeyQTCpp);
+
         return sz;
     }
 };
