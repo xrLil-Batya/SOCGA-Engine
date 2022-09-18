@@ -309,8 +309,13 @@ private:
     Fvector m_nearwall_last_pos{}, m_nearwall_last_rot{};
     u32 m_nearwall_last_call{};
 
-    float m_fLR_MovingFactor{}, m_fLookout_MovingFactor{}, m_fJump_MovingFactor{};
-    Fvector m_strafe_offset[3][2]{}, m_lookout_offset[3][2]{}, m_jump_offset[3][2]{};
+    float m_fLR_MovingFactor{}, m_fLookout_MovingFactor{};
+    Fvector m_strafe_offset[3][2]{}, m_lookout_offset[3][2]{};
+
+	// Прыжок
+	Fvector m_jump_offset[2]{}, m_fall_offset[2]{}, m_landing_offset[2]{}, m_landing2_offset[2]{};
+	float fJumpMaxTime{}, fFallMaxTime{}, fLandingMaxTime{}, fLanding2MaxTime{};
+	float m_fJump_MovingFactor{}, m_fFall_MovingFactor{}, m_fLanding_MovingFactor{}, m_fLanding2_MovingFactor{};
 
     float m_base_fov{};
 
