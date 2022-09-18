@@ -55,12 +55,13 @@ protected:
     ESoundTypes m_eSoundOpen{};
     ESoundTypes m_eSoundAddCartridge;
     ESoundTypes m_eSoundClose;
-    HUD_SOUND m_sndOpen;
-    HUD_SOUND m_sndAddCartridge;
-    HUD_SOUND m_sndClose, m_sndCloseEmpty;
+	HUD_SOUND m_sndOpen{}, m_sndOpenPreloaded{};
+	HUD_SOUND m_sndAddCartridge{}, m_sndAddCartridgePreloaded{};
+    HUD_SOUND m_sndClose{}, m_sndCloseEmpty{}, m_sndClosePreloaded{};
 
     bool is_reload_empty{};
     bool m_stop_triStateReload;
+	bool _is_preload_mode{}, _preloaded{}, _add_cartridge_in_open{};
 
     DECLARE_SCRIPT_REGISTER_FUNCTION
 };
