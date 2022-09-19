@@ -88,6 +88,9 @@ void CStalkerActionDead::initialize()
         if ((*I).m_pIItem->object().CLS_ID == CLSID_IITEM_BOLT)
             continue;
 
+		if ((*I).m_pIItem->object().CLS_ID == CLSID_DEVICE_BACKPACK)
+			continue;
+
         object().inventory().Ruck((*I).m_pIItem);
     }
 }
@@ -115,6 +118,9 @@ void CStalkerActionDead::execute()
 
         if ((*I).m_pIItem->object().CLS_ID == CLSID_IITEM_BOLT)
             continue;
+
+		if ((*I).m_pIItem->object().CLS_ID == CLSID_DEVICE_BACKPACK)
+			continue;
 
         if ((I - B) == (int)object().inventory().GetActiveSlot())
         {

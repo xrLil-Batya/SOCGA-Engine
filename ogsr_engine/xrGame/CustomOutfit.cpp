@@ -141,7 +141,8 @@ void CCustomOutfit::OnMoveToSlot()
             else
                 g_player_hud->load_default();
 
-            smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame())->InventoryMenu->UpdateOutfit();
+            if (smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame())->MainInputReceiver() && smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame())->MainInputReceiver()->cast_inventory_wnd())
+				smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame())->MainInputReceiver()->cast_inventory_wnd()->UpdateOutfit();
         }
     }
 }
@@ -169,7 +170,8 @@ void CCustomOutfit::OnDropOrMoveToRuck()
 
             g_player_hud->load_default();
 
-            smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame())->InventoryMenu->UpdateOutfit();
+            if (smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame())->MainInputReceiver() && smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame())->MainInputReceiver()->cast_inventory_wnd())
+				smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame())->MainInputReceiver()->cast_inventory_wnd()->UpdateOutfit();
         }
     }
 }

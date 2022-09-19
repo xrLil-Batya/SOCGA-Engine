@@ -269,6 +269,9 @@ void CUICarBodyWnd::UpdateLists()
     //Наш рюкзак
     for (const auto& inv_item : ruck_list)
     {
+		if (inv_item->m_flags.test(CInventoryItem::FIHiddenForInventory))
+			continue;
+
         CUICellItem* itm = create_cell_item(inv_item);
         if (inv_item->m_highlight_equipped)
         {
@@ -289,6 +292,9 @@ void CUICarBodyWnd::UpdateLists()
     //Чужой рюкзак
     for (const auto& inv_item : ruck_list)
     {
+		if (inv_item->m_flags.test(CInventoryItem::FIHiddenForInventory))
+			continue;
+
         CUICellItem* itm = create_cell_item(inv_item);
         m_pUIOthersBagList->SetItem(itm);
     }

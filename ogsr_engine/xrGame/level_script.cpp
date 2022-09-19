@@ -237,9 +237,9 @@ CUIDialogWnd* main_input_receiver() { return HUD().GetUI()->MainInputReceiver();
 CUIWindow* GetInventoryWindow()
 {
     CUIGameSP* pGameSP = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
-    if (!pGameSP)
+    if (!pGameSP || !pGameSP->MainInputReceiver())
         return nullptr;
-    return (CUIWindow*)pGameSP->InventoryMenu;
+    return (CUIWindow*)pGameSP->MainInputReceiver()->cast_inventory_wnd();
 }
 CUIWindow* GetTradeWindow()
 {
@@ -654,8 +654,10 @@ void update_inventory_window() { HUD().GetUI()->UIGame()->ReInitShownUI(); }
 void update_inventory_weight()
 {
     CUIGameSP* pGameSP = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
-    if (pGameSP)
-        pGameSP->InventoryMenu->UpdateWeight();
+
+    if (!pGameSP || !pGameSP->MainInputReceiver() || !pGameSP->MainInputReceiver()->cast_inventory_wnd())
+        return;
+    pGameSP->MainInputReceiver()->cast_inventory_wnd()->UpdateWeight();
 }
 
 void change_level(GameGraph::_GRAPH_ID game_vertex_id, u32 level_vertex_id, Fvector pos, Fvector dir)

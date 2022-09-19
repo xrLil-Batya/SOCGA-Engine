@@ -115,8 +115,8 @@ public:
     };
 
 public:
-    virtual void Hide(bool = false);
-    virtual void Show(bool = false);
+    virtual void Hide(bool);
+    virtual void Show(bool);
     virtual void UpdateXForm();
     virtual bool Action(s32 cmd, u32 flags);
     virtual void PlayAnimIdle();

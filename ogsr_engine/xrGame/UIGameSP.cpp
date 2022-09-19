@@ -22,9 +22,8 @@
 
 CUIGameSP::CUIGameSP()
 {
-    m_game = NULL;
+    m_game = nullptr;
 
-    InventoryMenu = xr_new<CUIInventoryWnd>();
     PdaMenu = xr_new<CUIPdaWnd>();
     TalkMenu = xr_new<CUITalkWnd>();
     UICarBodyMenu = xr_new<CUICarBodyWnd>();
@@ -33,7 +32,6 @@ CUIGameSP::CUIGameSP()
 
 CUIGameSP::~CUIGameSP()
 {
-    delete_data(InventoryMenu);
     delete_data(PdaMenu);
     delete_data(TalkMenu);
     delete_data(UICarBodyMenu);
@@ -55,7 +53,7 @@ void CUIGameSP::shedule_Update(u32 dt)
 void CUIGameSP::HideShownDialogs()
 {
     CUIDialogWnd* mir = MainInputReceiver();
-    if (mir && (mir == InventoryMenu || mir == PdaMenu || mir == TalkMenu || mir == UICarBodyMenu))
+    if (mir && ((MainInputReceiver() && mir==MainInputReceiver()->cast_inventory_wnd()) || mir == PdaMenu || mir == TalkMenu || mir == UICarBodyMenu))
         mir->GetHolder()->StartStopMenu(mir, true);
 }
 
@@ -92,18 +90,6 @@ bool CUIGameSP::IR_OnKeyboardPress(int dik)
     auto bind = get_binded_action(dik);
     switch (bind)
     {
-    case kINVENTORY:
-        if (!MainInputReceiver() || MainInputReceiver() == InventoryMenu)
-        {
-            auto Pda = pActor->GetPDA();
-            if (!Pda || !Pda->Is3DPDA() || !psActorFlags.test(AF_3D_PDA) || !PdaMenu->IsShown())
-            {
-                m_game->StartStopMenu(InventoryMenu, true);
-                return true;
-            }
-        }
-        break;
-
     case kACTIVE_JOBS:
     case kMAP:
     case kCONTACTS: {
@@ -183,8 +169,11 @@ void CUIGameSP::StartCarBody(CInventoryOwner* pOurInv, IInventoryBox* pBox)
 
 void CUIGameSP::ReInitShownUI()
 {
-    if (InventoryMenu->IsShown())
-        InventoryMenu->InitInventory_delayed();
+	if(MainInputReceiver() && MainInputReceiver()->cast_inventory_wnd())
+	{
+		if (MainInputReceiver()->cast_inventory_wnd()->IsShown()) 
+			MainInputReceiver()->cast_inventory_wnd()->InitInventory_delayed();
+	}
     else if (UICarBodyMenu->IsShown())
         UICarBodyMenu->UpdateLists_delayed();
 };
@@ -208,7 +197,10 @@ void CUIGameSP::ChangeLevel(GameGraph::_GRAPH_ID game_vert_id, u32 level_vert_id
 void CUIGameSP::reset_ui()
 {
     inherited::reset_ui();
-    InventoryMenu->Reset();
+
+	if(MainInputReceiver() && MainInputReceiver()->cast_inventory_wnd())
+		MainInputReceiver()->cast_inventory_wnd()->Reset();
+
     PdaMenu->Reset();
     TalkMenu->Reset();
     UICarBodyMenu->Reset();
@@ -223,6 +215,11 @@ void CUIGameSP::ShowHidePda(const bool show)
         if (show || MainInputReceiver() == PdaMenu)
             HUD().GetUI()->SetMainInputReceiver(nullptr, false);
     }
+}
+
+void CUIGameSP::ShowHideMenu(CUIDialogWnd* const wnd)
+{
+	m_game->StartStopMenu(wnd, true);
 }
 
 CChangeLevelWnd::CChangeLevelWnd()

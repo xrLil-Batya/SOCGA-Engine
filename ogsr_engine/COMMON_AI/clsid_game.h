@@ -164,6 +164,7 @@ constexpr auto CLSID_DETECTOR_SCIENTIFIC = MK_CLSID('D', 'E', 'T', '_', 'S', 'C'
 constexpr auto CLSID_DEVICE_PDA = MK_CLSID('D', '_', 'P', 'D', 'A', ' ', ' ', ' ');
 
 // Devices
+constexpr auto CLSID_DEVICE_BACKPACK = MK_CLSID('D','_','B','C','P','A','C','K');
 constexpr auto CLSID_DEVICE_TORCH = MK_CLSID('D', '_', 'T', 'O', 'R', 'C', 'H', ' ');
 constexpr auto CLSID_DEVICE_AF_MERGER = MK_CLSID('D', '_', 'A', 'F', 'M', 'E', 'R', 'G');
 

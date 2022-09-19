@@ -436,6 +436,7 @@ protected:
     void PickupInfoDraw(CObject* object);
     void PickupModeUpdate_COD();
 
+	bool can_sprint = true;
 public:
     void PickupModeOn();
     void PickupModeOff();
@@ -460,6 +461,7 @@ public:
     bool CanRun();
     void StopAnyMove();
 
+	IC void SetCanSprintState(const bool set_can_sprint) { can_sprint = set_can_sprint; }
 	IC const bool AnyAction() const { return mstate_real & mcAnyAction; };
 	IC const bool AnyMove() const { return mstate_real & mcAnyMove; };
 

@@ -9,6 +9,7 @@
 
 #include "uiwindow.h"
 class CDialogHolder;
+class CUIInventoryWnd;
 
 class CUIDialogWnd : public CUIWindow
 {
@@ -45,6 +46,8 @@ public:
     virtual bool NeedCursor() const { return true; }
     virtual bool WorkInPause() const { return m_bWorkInPause; }
     virtual bool Dispatch(int cmd, int param) { return true; }
+
+	virtual CUIInventoryWnd* cast_inventory_wnd() { return nullptr; };
 };
 
 #endif // _UI_DIALOG_WND_H_

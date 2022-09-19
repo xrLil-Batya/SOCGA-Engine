@@ -76,8 +76,8 @@ public:
     virtual void SwitchState(u32 S);
     virtual bool Activate(bool = false);
 
-    virtual void Hide(bool = false);
-    virtual void Show(bool = false);
+    virtual void Hide(bool);
+    virtual void Show(bool);
 
     //инициализация если вещь в активном слоте или спрятана на OnH_B_Chield
     virtual void OnActiveItem();

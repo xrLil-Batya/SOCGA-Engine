@@ -79,6 +79,8 @@ CInventory::CInventory()
         m_slots[i].setSwitchFast(READ_IF_EXISTS(pSettings, r_bool, "inventory", temp, false));
     }
 
+	m_slots[BACKPACK_SLOT].m_bVisible = true;
+	m_slots[BACKPACK_SLOT].m_bPersistent = true;
     m_slots[PDA_SLOT].m_bVisible = false;
     m_slots[OUTFIT_SLOT].m_bVisible = false;
     m_slots[TORCH_SLOT].m_bVisible = false;
@@ -285,7 +287,7 @@ bool CInventory::DropItem(CGameObject* pObj)
 //положить вещь в слот
 bool CInventory::Slot(PIItem pIItem, bool bNotActivate)
 {
-    VERIFY(pIItem);
+    R_ASSERT(pIItem, "Something strange!");
     //	Msg("To Slot %s[%d]", *pIItem->object().cName(), pIItem->object().ID());
 
     if (!CanPutInSlot(pIItem))
@@ -578,6 +580,7 @@ bool CInventory::Action(s32 cmd, u32 flags)
 
         case kDROP:
 
+		if(!smart_cast<CUIInventoryWnd*>(ActiveItem()))
         {
             SendActionEvent(cmd, flags);
             return true;
@@ -648,7 +651,7 @@ bool CInventory::Action(s32 cmd, u32 flags)
             else
             {
                 auto pGameSP = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
-                if (pGameSP->InventoryMenu->IsShown())
+                if (pGameSP->MainInputReceiver() && pGameSP->MainInputReceiver()->cast_inventory_wnd())
                     break;
                 pGameSP->PdaMenu->SetActiveSubdialog(cmd == kACTIVE_JOBS ? eptQuests : (cmd == kMAP ? eptMap : eptContacts));
                 b_send_event = Activate(PDA_SLOT, eKeyAction);
@@ -656,6 +659,18 @@ bool CInventory::Action(s32 cmd, u32 flags)
         }
     }
     break;
+	case kINVENTORY:
+	{
+		b_send_event = true;
+		if (flags & CMD_START)
+		{
+			if (smart_cast<CUIInventoryWnd*>(ActiveItem()))
+				Activate(NO_ACTIVE_SLOT);
+			else
+				Activate(BACKPACK_SLOT);
+		}
+		break;
+	}
     }
 
     if (b_send_event && g_pGameLevel && OnClient() && pActor)
@@ -670,8 +685,8 @@ void CInventory::Update()
     // А проблема вся в том, что арты и костюм выходят в онлайн в хаотичном порядке. И получается, что арты на пояс уже пытаются залезть, а костюма вроде как ещё нет,
     // соотв. и слотов под арты как бы нет. Вот поэтому до первого апдейта CInventory актора считаем, что все слоты для артов доступны ( см. CInventory::BeltSlotsCount() )
     // По моим наблюдениям на момент первого апдейта CInventory, все предметы в инвентаре актора уже вышли в онлайн.
-    if (smart_cast<CActor*>(m_pOwner) && (++UpdatesCount == 1))
-        smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame())->InventoryMenu->UpdateOutfit();
+	if (smart_cast<CActor*>(m_pOwner) && (++UpdatesCount == 1) && smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame())->MainInputReceiver() && smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame())->MainInputReceiver()->cast_inventory_wnd())
+		smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame())->MainInputReceiver()->cast_inventory_wnd()->UpdateOutfit();
 
     bool bActiveSlotVisible;
 
@@ -1090,9 +1105,11 @@ u32 CInventory::BeltSlotsCount() const
 
 void CInventory::AddAvailableItems(TIItemContainer& items_container, bool for_trade) const
 {
-    for (TIItemContainer::const_iterator it = m_ruck.begin(); m_ruck.end() != it; ++it)
+    for (auto pIItem : m_ruck)
     {
-        PIItem pIItem = *it;
+		if(smart_cast<CUIInventoryWnd*>(pIItem))
+			continue;
+
         if (!for_trade || pIItem->CanTrade())
             items_container.push_back(pIItem);
     }
@@ -1109,13 +1126,13 @@ void CInventory::AddAvailableItems(TIItemContainer& items_container, bool for_tr
 
     if (m_bSlotsUseful)
     {
-        TISlotArr::const_iterator slot_it = m_slots.begin();
-        TISlotArr::const_iterator slot_it_e = m_slots.end();
-        for (; slot_it != slot_it_e; ++slot_it)
+        for (auto S : m_slots)
         {
-            const CInventorySlot& S = *slot_it;
             if (S.m_pIItem && (!for_trade || S.m_pIItem->CanTrade()))
             {
+				if(smart_cast<CUIInventoryWnd*>(S.m_pIItem))
+					continue;
+
                 if (!S.m_bPersistent || S.m_pIItem->GetSlot() == GRENADE_SLOT)
                     items_container.push_back(S.m_pIItem);
             }

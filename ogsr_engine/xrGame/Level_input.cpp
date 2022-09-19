@@ -27,6 +27,7 @@
 #include "GamePersistent.h"
 #include "MainMenu.h"
 #include "UIGameSP.h"
+#include "ui/uiinventorywnd.h"
 
 #ifdef DEBUG
 #include "ai/monsters/BaseMonster/base_monster.h"
@@ -133,6 +134,9 @@ void CLevel::IR_OnKeyboardPress(int key)
     //.	if (DIK_F11 == key)		vtune.disable();
 
     EGameActions _curr = get_binded_action(key);
+
+	if(auto actor = smart_cast<CActor*>(CURRENT_ENTITY())) // Fix Backpack hotkey input for disabled state
+		if(auto inv = smart_cast<CUIInventoryWnd*>(actor->inventory().ActiveItem()); inv && !inv->IsEnabled() && inv->OnKeyboard(key, WINDOW_KEY_PRESSED)) return;
 
     switch (_curr)
     {

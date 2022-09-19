@@ -33,6 +33,7 @@
 #include "Missile.h"
 #include "PDA.h"
 #include "ui/UIPDAWnd.h"
+#include "ui/uiinventorywnd.h"
 
 bool g_bAutoClearCrouch = true;
 extern int g_bHudAdjustMode;
@@ -145,8 +146,10 @@ void CActor::IR_OnKeyboardPress(int cmd)
     break;
     case kUSE: ActorUse(); break;
     case kDROP:
-        b_DropActivated = TRUE;
-        f_DropPower = 0;
+		if(!smart_cast<CUIInventoryWnd*>(inventory().ActiveItem())) {
+			b_DropActivated = true;
+			f_DropPower = 0;
+		}
         break;
     case kNEXT_SLOT: {
         OnNextWeaponSlot();
@@ -236,7 +239,7 @@ void CActor::IR_OnKeyboardRelease(int cmd)
         {
         case kJUMP: mstate_wishful &= ~mcJump; break;
         case kDROP:
-            if (GAME_PHASE_INPROGRESS == Game().Phase())
+            if (GAME_PHASE_INPROGRESS == Game().Phase() && !smart_cast<CUIInventoryWnd*>(inventory().ActiveItem()))
                 g_PerformDrop();
             break;
         case kCROUCH: g_bAutoClearCrouch = true;

@@ -12,6 +12,7 @@
 #include "../CustomOutfit.h"
 
 #include "../weapon.h"
+#include "player_hud.h"
 
 #include "../eatable_item.h"
 #include "../inventory.h"
@@ -30,24 +31,40 @@ using namespace InventoryUtilities;
 #include "UIOutfitSlot.h"
 #include "UI3tButton.h"
 
-#define INVENTORY_ITEM_XML "inventory_item.xml"
-#define INVENTORY_XML "inventory_new.xml"
+constexpr const char* INVENTORY_ITEM_XML = "inventory_item.xml";
+constexpr const char* INVENTORY_XML = "inventory_new.xml";
 
-CUIInventoryWnd* g_pInvWnd = NULL;
-
-CUIInventoryWnd::CUIInventoryWnd()
-    : m_pUIBagList(nullptr), m_pUIBeltList(nullptr), m_pUIPistolList(nullptr), m_pUIAutomaticList(nullptr), m_pUIKnifeList(nullptr), m_pUIHelmetList(nullptr),
-      m_pUIBIODetList(nullptr), m_pUINightVisionList(nullptr), m_pUIDetectorList(nullptr), m_pUITorchList(nullptr), m_pUIBinocularList(nullptr), m_pUIOutfitList(nullptr)
+CUIInventoryWnd* g_pInvWnd = nullptr;
+CUIInventoryWnd::CUIInventoryWnd() : 
+	m_pUIBagList(nullptr), m_pUIBeltList(nullptr), m_pUIPistolList(nullptr), m_pUIAutomaticList(nullptr),
+	m_pUIKnifeList(nullptr), m_pUIHelmetList(nullptr), m_pUIBIODetList(nullptr), m_pUINightVisionList(nullptr),
+	m_pUIDetectorList(nullptr), m_pUITorchList(nullptr), m_pUIBinocularList(nullptr), m_pUIOutfitList(nullptr)
 {
-    m_iCurrentActiveSlot = NO_ACTIVE_SLOT;
-    UIRank = NULL;
-    Init();
-    SetCurrentItem(NULL);
+	m_iCurrentActiveSlot				= NO_ACTIVE_SLOT;
+	UIRank								= nullptr;
+	Init								();
+	SetCurrentItem						(nullptr);
 
-    g_pInvWnd = this;
-    m_b_need_reinit = false;
-    m_b_need_update_stats = false;
-    Hide();
+	g_pInvWnd							= this;	
+	m_b_need_reinit						= false;
+	m_b_need_update_stats = false;
+	bNeedSwitchState = false;
+	SetSlot(BACKPACK_SLOT);
+
+	if(Actor())
+		Actor()->inventory().m_slots[BACKPACK_SLOT].m_pIItem = this;
+	
+	SetState(eHidden);
+	SetNextState(eHidden);
+	m_flags.set					(FIHiddenForInventory | FIAlwaysUntradable, true);
+	m_flags.set					(FCanTake | FCanTrade | Fuseful_for_NPC, false);
+	
+	Hide								();	
+}
+
+void CUIInventoryWnd::Load(LPCSTR section)
+{
+	CHudItemObject::Load(section);
 }
 
 void CUIInventoryWnd::Init()
@@ -186,7 +203,7 @@ void CUIInventoryWnd::Init()
     }
 
     for (u8 i = 0; i < SLOTS_TOTAL; i++)
-        m_slots_array[i] = NULL;
+        m_slots_array[i] = nullptr;
     m_slots_array[OUTFIT_SLOT] = m_pUIOutfitList;
     if (Core.Features.test(xrCore::Feature::ogse_new_slots))
         m_slots_array[KNIFE_SLOT] = m_pUIKnifeList;
@@ -234,338 +251,487 @@ void CUIInventoryWnd::Init()
     ::Sound->create(sounds[eInvItemUse], uiXml.Read("snd_item_use", 0, NULL), st_Effect, sg_SourceType);
 
     uiXml.SetLocalRoot(stored_root);
+
+	bNeedSwitchState = true;
 }
 
 EListType CUIInventoryWnd::GetType(CUIDragDropListEx* l)
 {
-    if (l == m_pUIBagList)
-        return iwBag;
-    if (l == m_pUIBeltList)
-        return iwBelt;
+	if(l==m_pUIBagList)			return iwBag;
+	if(l==m_pUIBeltList)		return iwBelt;
 
-    for (u8 i = 0; i < SLOTS_TOTAL; i++)
-        if (m_slots_array[i] == l)
+        for ( u8 i = 0; i < SLOTS_TOTAL; i++ )
+          if ( m_slots_array[ i ] == l )
             return iwSlot;
 
-    NODEFAULT;
+	NODEFAULT;
 #ifdef DEBUG
-    return iwSlot;
+	return iwSlot;
 #endif // DEBUG
 }
 
 void CUIInventoryWnd::PlaySnd(eInventorySndAction a)
 {
-    if (sounds[a]._handle())
-        sounds[a].play(NULL, sm_2D);
+	if (sounds[a]._handle())
+        sounds[a].play					(nullptr, sm_2D);
 }
 
 CUIInventoryWnd::~CUIInventoryWnd()
 {
-    //.	ClearDragDrop(m_vDragDropItems);
-    ClearAllLists();
+//.	ClearDragDrop(m_vDragDropItems);
+	ClearAllLists						();
 }
 
 bool CUIInventoryWnd::OnMouse(float x, float y, EUIMessages mouse_action)
 {
-    if (m_b_need_reinit)
-        return true;
+	if(m_b_need_reinit)
+		return true;
 
-    if (mouse_action == WINDOW_RBUTTON_DOWN)
-    {
-        if (UIPropertiesBox.IsShown())
-        {
-            UIPropertiesBox.Hide();
-            return true;
-        }
-    }
+	if(mouse_action == WINDOW_RBUTTON_DOWN)
+	{
+		if(UIPropertiesBox.IsShown())
+		{
+			UIPropertiesBox.Hide		();
+			return						true;
+		}
+	}
 
-    CUIWindow::OnMouse(x, y, mouse_action);
+	CUIWindow::OnMouse					(x, y, mouse_action);
 
-    return true; // always returns true, because ::StopAnyMove() == true;
+	return true; // always returns true, because ::StopAnyMove() == true;
 }
 
-void CUIInventoryWnd::Draw() { CUIWindow::Draw(); }
+void CUIInventoryWnd::Draw()
+{
+	CUIWindow::Draw						();
+}
+
 
 void CUIInventoryWnd::Update()
 {
-    if (m_b_need_reinit)
-        InitInventory();
+	if(m_b_need_reinit)
+		InitInventory					();
 
-    CEntityAlive* pEntityAlive = smart_cast<CEntityAlive*>(Level().CurrentEntity());
 
-    if (pEntityAlive)
-    {
-        float v = pEntityAlive->conditions().GetHealth() * 100.0f;
-        UIProgressBarHealth.SetProgressPos(v);
+	CEntityAlive *pEntityAlive			= smart_cast<CEntityAlive*>(Level().CurrentEntity());
 
-        v = pEntityAlive->conditions().GetPsyHealth() * 100.0f;
-        UIProgressBarPsyHealth.SetProgressPos(v);
+	if(pEntityAlive) 
+	{
+		float v = pEntityAlive->conditions().GetHealth()*100.0f;
+		UIProgressBarHealth.SetProgressPos		(v);
 
-        v = pEntityAlive->conditions().GetRadiation() * 100.0f;
-        UIProgressBarRadiation.SetProgressPos(v);
+		v = pEntityAlive->conditions().GetPsyHealth()*100.0f;
+		UIProgressBarPsyHealth.SetProgressPos	(v);
 
-        CInventoryOwner* pOurInvOwner = smart_cast<CInventoryOwner*>(pEntityAlive);
-        u32 _money = pOurInvOwner->get_money();
+		v = pEntityAlive->conditions().GetRadiation()*100.0f;
+		UIProgressBarRadiation.SetProgressPos	(v);
 
-        // update money
-        string64 sMoney;
-        sprintf_s(sMoney, "%d RU", _money);
-        UIMoneyWnd.SetText(sMoney);
+		CInventoryOwner* pOurInvOwner	= smart_cast<CInventoryOwner*>(pEntityAlive);
+		u32 _money						= pOurInvOwner->get_money();
 
-        if (m_b_need_update_stats)
-        {
-            // update outfit parameters
-            CCustomOutfit* outfit = smart_cast<CCustomOutfit*>(pOurInvOwner->inventory().m_slots[OUTFIT_SLOT].m_pIItem);
-            UIOutfitInfo.Update(outfit);
+		// update money
+		string64						sMoney;
+		sprintf_s							(sMoney,"%d RU", _money);
+		UIMoneyWnd.SetText				(sMoney);
 
-            m_b_need_update_stats = false;
-        }
-    }
+		if (m_b_need_update_stats)
+		{
+			// update outfit parameters
+			CCustomOutfit* outfit = smart_cast<CCustomOutfit*>(pOurInvOwner->inventory().m_slots[OUTFIT_SLOT].m_pIItem);
+			UIOutfitInfo.Update(outfit);
 
-    UIStaticTimeString.SetText(*InventoryUtilities::GetGameTimeAsString(InventoryUtilities::etpTimeToMinutes));
+			m_b_need_update_stats = false;
+		}
+	}
 
-    CUIWindow::Update();
+	UIStaticTimeString.SetText(*InventoryUtilities::GetGameTimeAsString(InventoryUtilities::etpTimeToMinutes));
+
+	CUIWindow::Update					();
 }
 
-void CUIInventoryWnd::Show()
+void CUIInventoryWnd::Show() 
 {
-    InitInventory();
-    inherited::Show();
-
-    if (Core.Features.test(xrCore::Feature::more_hide_weapon))
-        Actor()->SetWeaponHideState(INV_STATE_INV_WND, true);
-
-    SendInfoToActor("ui_inventory");
-
-    Update();
-    PlaySnd(eInvSndOpen);
-
-    m_b_need_update_stats = true;
-
-    if (Core.Features.test(xrCore::Feature::engine_ammo_repacker) && !Core.Features.test(xrCore::Feature::hard_ammo_reload))
-        if (auto pActor = Actor())
-            pActor->RepackAmmo();
 }
 
 void CUIInventoryWnd::Hide()
 {
-    PlaySnd(eInvSndClose);
-    inherited::Hide();
+	PlaySnd								(eInvSndClose);
+	inherited::Hide						();
 
-    SendInfoToActor("ui_inventory_hide");
-    ClearAllLists();
+	SendInfoToActor						("ui_inventory_hide");
+	ClearAllLists						();
 
-    //достать вещь в активный слот
-    CActor* pActor = smart_cast<CActor*>(Level().CurrentEntity());
-    if (pActor && m_iCurrentActiveSlot != NO_ACTIVE_SLOT && pActor->inventory().m_slots[m_iCurrentActiveSlot].m_pIItem)
-    {
-        pActor->inventory().Activate(m_iCurrentActiveSlot);
-        m_iCurrentActiveSlot = NO_ACTIVE_SLOT;
-    }
+	//достать вещь в активный слот
+	CActor *pActor = smart_cast<CActor*>(Level().CurrentEntity());
+	if(pActor && m_iCurrentActiveSlot != NO_ACTIVE_SLOT && 
+		pActor->inventory().m_slots[m_iCurrentActiveSlot].m_pIItem)
+	{
+		pActor->inventory().Activate(m_iCurrentActiveSlot);
+		m_iCurrentActiveSlot = NO_ACTIVE_SLOT;
+	}
 
-    if (Core.Features.test(xrCore::Feature::more_hide_weapon))
-        if (pActor)
-            pActor->SetWeaponHideState(INV_STATE_INV_WND, false);
+	if (Core.Features.test(xrCore::Feature::more_hide_weapon))
+		if ( pActor )
+			pActor->SetWeaponHideState(INV_STATE_INV_WND, false);
 
-    HideSlotsHighlight();
+	HideSlotsHighlight();
+}
+
+void CUIInventoryWnd::Hide(bool now)
+{
+	if (now)
+	{
+		OnStateSwitch(eHidden, GetState());
+		SetState(eHidden);
+		StopHUDSounds();
+	}
+	else
+		SwitchState(eHiding);
+}
+
+void CUIInventoryWnd::Show(bool now)
+{
+	if (now)
+	{
+		StopCurrentAnimWithoutCallback();
+		OnStateSwitch(eIdle, GetState());
+		SetState(eIdle);
+		StopHUDSounds();
+	}
+	else
+	
+	if(GetState() != eIdle && GetState() != eHiding)
+		SwitchState(eShowing);
+}
+
+void CUIInventoryWnd::OnActiveItem()
+{
+	auto pActor = smart_cast<const CActor*>(H_Parent());
+	if (!pActor) return;
+
+	SwitchState(eShowing);
+}
+
+void CUIInventoryWnd::OnHiddenItem()
+{
+	auto pActor = smart_cast<const CActor*>(H_Parent());
+	if (!pActor) return;
+
+	SwitchState(eHiding);
 }
 
 void CUIInventoryWnd::HideSlotsHighlight()
 {
-    m_pUIBeltList->enable_highlight(false);
-    for (const auto& DdList : m_slots_array)
-        if (DdList)
-            DdList->enable_highlight(false);
+	m_pUIBeltList->enable_highlight(false);
+	for (const auto& DdList : m_slots_array)
+		if (DdList)
+			DdList->enable_highlight(false);
 }
 
 void CUIInventoryWnd::ShowSlotsHighlight(PIItem InvItem)
 {
-    if (InvItem->m_flags.test(CInventoryItem::Fbelt) && !Actor()->inventory().InBelt(InvItem))
-        m_pUIBeltList->enable_highlight(true);
+	if (InvItem->m_flags.test(CInventoryItem::Fbelt) && !Actor()->inventory().InBelt(InvItem))
+		m_pUIBeltList->enable_highlight(true);
 
-    for (const u8 slot : InvItem->GetSlots())
-        if (auto DdList = m_slots_array[slot]; DdList && (!Actor()->inventory().InSlot(InvItem) || InvItem->GetSlot() != slot))
-            DdList->enable_highlight(true);
+	for (const u8 slot : InvItem->GetSlots())
+		if (auto DdList = m_slots_array[slot]; DdList && (!Actor()->inventory().InSlot(InvItem) || InvItem->GetSlot() != slot))
+			DdList->enable_highlight(true);
 }
+
 
 void CUIInventoryWnd::AttachAddon(PIItem item_to_upgrade)
 {
-    PlaySnd(eInvAttachAddon);
-    R_ASSERT(item_to_upgrade);
-    if (OnClient())
-    {
-        NET_Packet P;
-        item_to_upgrade->object().u_EventGen(P, GE_ADDON_ATTACH, item_to_upgrade->object().ID());
-        P.w_u32(CurrentIItem()->object().ID());
-        item_to_upgrade->object().u_EventSend(P);
-    };
+	PlaySnd										(eInvAttachAddon);
+	R_ASSERT									(item_to_upgrade);
+	if (OnClient())
+	{
+		NET_Packet								P;
+		item_to_upgrade->object().u_EventGen	(P, GE_ADDON_ATTACH, item_to_upgrade->object().ID());
+		P.w_u32									(CurrentIItem()->object().ID());
+		item_to_upgrade->object().u_EventSend	(P);
+	};
 
-    item_to_upgrade->Attach(CurrentIItem(), true);
+	item_to_upgrade->Attach						(CurrentIItem(), true);
 
-    //спрятать вещь из активного слота в инвентарь на время вызова менюшки
-    CActor* pActor = smart_cast<CActor*>(Level().CurrentEntity());
-    if (pActor && item_to_upgrade == pActor->inventory().ActiveItem())
-    {
-        m_iCurrentActiveSlot = pActor->inventory().GetActiveSlot();
-        pActor->inventory().Activate(NO_ACTIVE_SLOT);
-    }
-    SetCurrentItem(NULL);
+
+	//спрятать вещь из активного слота в инвентарь на время вызова менюшки
+	CActor *pActor								= smart_cast<CActor*>(Level().CurrentEntity());
+	if(pActor && item_to_upgrade == pActor->inventory().ActiveItem())
+	{
+			m_iCurrentActiveSlot				= pActor->inventory().GetActiveSlot();
+			pActor->inventory().Activate		(NO_ACTIVE_SLOT);
+	}
+	SetCurrentItem								(NULL);
 }
 
 void CUIInventoryWnd::DetachAddon(const char* addon_name)
 {
-    PlaySnd(eInvDetachAddon);
-    if (OnClient())
-    {
-        NET_Packet P;
-        CurrentIItem()->object().u_EventGen(P, GE_ADDON_DETACH, CurrentIItem()->object().ID());
-        P.w_stringZ(addon_name);
-        CurrentIItem()->object().u_EventSend(P);
-    };
-    CurrentIItem()->Detach(addon_name, true);
+	PlaySnd										(eInvDetachAddon);
+	if (OnClient())
+	{
+		NET_Packet								P;
+		CurrentIItem()->object().u_EventGen		(P, GE_ADDON_DETACH, CurrentIItem()->object().ID());
+		P.w_stringZ								(addon_name);
+		CurrentIItem()->object().u_EventSend	(P);
+	};
+	CurrentIItem()->Detach						(addon_name, true);
 
-    //спрятать вещь из активного слота в инвентарь на время вызова менюшки
-    CActor* pActor = smart_cast<CActor*>(Level().CurrentEntity());
-    if (pActor && CurrentIItem() == pActor->inventory().ActiveItem())
-    {
-        m_iCurrentActiveSlot = pActor->inventory().GetActiveSlot();
-        pActor->inventory().Activate(NO_ACTIVE_SLOT);
-    }
+	//спрятать вещь из активного слота в инвентарь на время вызова менюшки
+	CActor *pActor								= smart_cast<CActor*>(Level().CurrentEntity());
+	if(pActor && CurrentIItem() == pActor->inventory().ActiveItem())
+	{
+			m_iCurrentActiveSlot				= pActor->inventory().GetActiveSlot();
+			pActor->inventory().Activate		(NO_ACTIVE_SLOT);
+	}
 }
 
-void CUIInventoryWnd::SendEvent_ActivateSlot(PIItem pItem)
+
+void	CUIInventoryWnd::SendEvent_ActivateSlot	(PIItem	pItem)
 {
-    NET_Packet P;
-    pItem->object().u_EventGen(P, GEG_PLAYER_ACTIVATE_SLOT, pItem->object().H_Parent()->ID());
-    P.w_u32(pItem->GetSlot());
-    pItem->object().u_EventSend(P);
+	NET_Packet						P;
+	pItem->object().u_EventGen		(P, GEG_PLAYER_ACTIVATE_SLOT, pItem->object().H_Parent()->ID());
+	P.w_u32							(pItem->GetSlot());
+	pItem->object().u_EventSend		(P);
 }
 
-void CUIInventoryWnd::SendEvent_Item2Slot(PIItem pItem)
+void	CUIInventoryWnd::SendEvent_Item2Slot			(PIItem	pItem)
 {
-    NET_Packet P;
-    pItem->object().u_EventGen(P, GEG_PLAYER_ITEM2SLOT, pItem->object().H_Parent()->ID());
-    P.w_u16(pItem->object().ID());
-    pItem->object().u_EventSend(P);
-    g_pInvWnd->PlaySnd(eInvItemToSlot);
-    m_b_need_update_stats = true;
+	NET_Packet						P;
+	pItem->object().u_EventGen		(P, GEG_PLAYER_ITEM2SLOT, pItem->object().H_Parent()->ID());
+	P.w_u16							(pItem->object().ID());
+	pItem->object().u_EventSend		(P);
+	g_pInvWnd->PlaySnd				(eInvItemToSlot);
+	m_b_need_update_stats = true;
 };
 
-void CUIInventoryWnd::SendEvent_Item2Belt(PIItem pItem)
+void	CUIInventoryWnd::SendEvent_Item2Belt			(PIItem	pItem)
 {
-    NET_Packet P;
-    pItem->object().u_EventGen(P, GEG_PLAYER_ITEM2BELT, pItem->object().H_Parent()->ID());
-    P.w_u16(pItem->object().ID());
-    pItem->object().u_EventSend(P);
-    g_pInvWnd->PlaySnd(eInvItemToBelt);
-    m_b_need_update_stats = true;
+	NET_Packet						P;
+	pItem->object().u_EventGen		(P, GEG_PLAYER_ITEM2BELT, pItem->object().H_Parent()->ID());
+	P.w_u16							(pItem->object().ID());
+	pItem->object().u_EventSend		(P);
+	g_pInvWnd->PlaySnd				(eInvItemToBelt);
+	m_b_need_update_stats = true;
 };
 
-void CUIInventoryWnd::SendEvent_Item2Ruck(PIItem pItem)
+void	CUIInventoryWnd::SendEvent_Item2Ruck			(PIItem	pItem)
 {
-    NET_Packet P;
-    pItem->object().u_EventGen(P, GEG_PLAYER_ITEM2RUCK, pItem->object().H_Parent()->ID());
-    P.w_u16(pItem->object().ID());
-    pItem->object().u_EventSend(P);
-    g_pInvWnd->PlaySnd(eInvItemToRuck);
-    m_b_need_update_stats = true;
+	NET_Packet						P;
+	pItem->object().u_EventGen		(P, GEG_PLAYER_ITEM2RUCK, pItem->object().H_Parent()->ID());
+	P.w_u16							(pItem->object().ID());
+	pItem->object().u_EventSend		(P);
+	g_pInvWnd->PlaySnd				(eInvItemToRuck);
+	m_b_need_update_stats = true;
 };
 
-void CUIInventoryWnd::SendEvent_Item_Drop(PIItem pItem)
+void	CUIInventoryWnd::SendEvent_Item_Drop(PIItem	pItem)
 {
-    pItem->SetDropManual(TRUE);
+	pItem->SetDropManual			(true);
 
-    if (OnClient())
-    {
-        NET_Packet P;
-        pItem->object().u_EventGen(P, GE_OWNERSHIP_REJECT, pItem->object().H_Parent()->ID());
-        P.w_u16(pItem->object().ID());
-        pItem->object().u_EventSend(P);
-    }
-    g_pInvWnd->PlaySnd(eInvDropItem);
-    m_b_need_update_stats = true;
+	if( OnClient() )
+	{
+		NET_Packet					P;
+		pItem->object().u_EventGen	(P, GE_OWNERSHIP_REJECT, pItem->object().H_Parent()->ID());
+		P.w_u16						(pItem->object().ID());
+		pItem->object().u_EventSend(P);
+	}
+	g_pInvWnd->PlaySnd				(eInvDropItem);
+	m_b_need_update_stats = true;
 };
 
-void CUIInventoryWnd::SendEvent_Item_Eat(PIItem pItem)
+void	CUIInventoryWnd::SendEvent_Item_Eat			(PIItem	pItem)
 {
-    R_ASSERT(pItem->m_pCurrentInventory == m_pInv);
-    NET_Packet P;
-    pItem->object().u_EventGen(P, GEG_PLAYER_ITEM_EAT, pItem->object().H_Parent()->ID());
-    P.w_u16(pItem->object().ID());
-    pItem->object().u_EventSend(P);
+	R_ASSERT						(pItem->m_pCurrentInventory==m_pInv);
+	NET_Packet						P;
+	pItem->object().u_EventGen		(P, GEG_PLAYER_ITEM_EAT, pItem->object().H_Parent()->ID());
+	P.w_u16							(pItem->object().ID());
+	pItem->object().u_EventSend		(P);
 };
 
 void CUIInventoryWnd::BindDragDropListEnents(CUIDragDropListEx* lst)
 {
-    lst->m_f_item_drop = fastdelegate::MakeDelegate(this, &CUIInventoryWnd::OnItemDrop);
-    lst->m_f_item_start_drag = fastdelegate::MakeDelegate(this, &CUIInventoryWnd::OnItemStartDrag);
-    lst->m_f_item_db_click = fastdelegate::MakeDelegate(this, &CUIInventoryWnd::OnItemDbClick);
-    lst->m_f_item_selected = fastdelegate::MakeDelegate(this, &CUIInventoryWnd::OnItemSelected);
-    lst->m_f_item_rbutton_click = fastdelegate::MakeDelegate(this, &CUIInventoryWnd::OnItemRButtonClick);
+	lst->m_f_item_drop = fastdelegate::MakeDelegate(this, &CUIInventoryWnd::OnItemDrop);
+	lst->m_f_item_start_drag = fastdelegate::MakeDelegate(this, &CUIInventoryWnd::OnItemStartDrag);
+	lst->m_f_item_db_click = fastdelegate::MakeDelegate(this, &CUIInventoryWnd::OnItemDbClick);
+	lst->m_f_item_selected = fastdelegate::MakeDelegate(this, &CUIInventoryWnd::OnItemSelected);
+	lst->m_f_item_rbutton_click = fastdelegate::MakeDelegate(this, &CUIInventoryWnd::OnItemRButtonClick);
 }
+
 
 #include "../xr_level_controller.h"
 #include <dinput.h>
+#include "../xr_3da/XR_IOConsole.h"
 
 bool CUIInventoryWnd::OnKeyboard(int dik, EUIMessages keyboard_action)
 {
-    if (m_b_need_reinit)
-        return true;
+	if(m_b_need_reinit)
+		return true;
 
-    if (UIPropertiesBox.GetVisible())
-        UIPropertiesBox.OnKeyboard(dik, keyboard_action);
+	if (UIPropertiesBox.GetVisible())
+		UIPropertiesBox.OnKeyboard(dik, keyboard_action);
 
-    if (is_binded(kDROP, dik))
-    {
-        if (WINDOW_KEY_PRESSED == keyboard_action)
-            DropCurrentItem(false);
-        return true;
-    }
+	if ( is_binded(kDROP, dik) )
+	{
+		if(WINDOW_KEY_PRESSED==keyboard_action)
+			DropCurrentItem(false);
+		return true;
+	}
 
-    if (WINDOW_KEY_PRESSED == keyboard_action)
-    {
+	if(auto actor = smart_cast<CActor*>(H_Parent()); actor && get_binded_action(dik) == kQUIT)
+	{
+		if(WINDOW_KEY_PRESSED == keyboard_action)
+		{
+			if (GetState() == eHiding || GetState() == eHidden)
+			{
+				Console->Execute("main_menu");
+			}
+			else
+				actor->inventory().Activate(NO_ACTIVE_SLOT);
+		}
+		return true;
+	}
+
+	if (WINDOW_KEY_PRESSED == keyboard_action)
+	{
 #ifdef DEBUG
-        if (DIK_NUMPAD7 == dik && CurrentIItem())
-        {
-            CurrentIItem()->ChangeCondition(-0.05f);
-            UIItemInfo.InitItem(CurrentIItem());
-        }
-        else if (DIK_NUMPAD8 == dik && CurrentIItem())
-        {
-            CurrentIItem()->ChangeCondition(0.05f);
-            UIItemInfo.InitItem(CurrentIItem());
-        }
+		if(DIK_NUMPAD7 == dik && CurrentIItem())
+		{
+			CurrentIItem()->ChangeCondition(-0.05f);
+			UIItemInfo.InitItem(CurrentIItem());
+		}
+		else if(DIK_NUMPAD8 == dik && CurrentIItem())
+		{
+			CurrentIItem()->ChangeCondition(0.05f);
+			UIItemInfo.InitItem(CurrentIItem());
+		}
 #endif
-    }
-    if (inherited::OnKeyboard(dik, keyboard_action))
-        return true;
-
-    return false;
+	}
+	return inherited::OnKeyboard(dik,keyboard_action);
 }
 
 void CUIInventoryWnd::UpdateOutfit()
 {
-    if (dont_update_belt_flag)
-    { //Чтобы арты не перемещались в рюкзак, при смене костюма
-        dont_update_belt_flag = false;
-        return;
-    }
+	if (dont_update_belt_flag) { //Чтобы арты не перемещались в рюкзак, при смене костюма
+		dont_update_belt_flag = false;
+		return;
+	}
 
-    auto& inv = Actor()->inventory();
-    const u32 new_slots_count = inv.BeltSlotsCount();
-    m_pUIBeltList->SetCellsAvailable(new_slots_count);
+	auto& inv = Actor()->inventory();
+	const u32 new_slots_count = inv.BeltSlotsCount();
+	m_pUIBeltList->SetCellsAvailable(new_slots_count);
 
-    auto& l_blist = inv.m_belt;
-    bool modified{};
-    while (l_blist.size() > new_slots_count)
-    {
-        inv.Ruck(l_blist.back());
-        modified = true;
-    }
+	auto& l_blist = inv.m_belt;
+	bool modified{};
+	while (l_blist.size() > new_slots_count) {
+		inv.Ruck(l_blist.back());
+		modified = true;
+	}
 
-    if (modified)
-    {
-        extern void update_inventory_window(); //некрасиво, зато просто
-        update_inventory_window();
-    }
+	if (modified) {
+		extern void update_inventory_window(); //некрасиво, зато просто
+		update_inventory_window();
+	}
+}
+
+void CUIInventoryWnd::OnStateSwitch(u32 S, u32 oldState)
+{
+	CHudItemObject::OnStateSwitch(S, oldState);
+	auto pActor = smart_cast<const CActor*>(H_Parent());
+	if (!pActor) return;
+
+	switch (S)
+	{
+	case eShowing:
+	{
+		g_player_hud->attach_item(this);
+		CHudItem::object().processing_activate();
+		CInventoryItem::object().processing_activate();
+
+		PlayHUDMotion("anm_show", true, GetState());
+		PlaySnd								(eInvSndOpen);
+
+		if (Actor())
+		{
+			Actor()->set_state_wishful(Actor()->get_state_wishful() | mcAccel | mcCrouch);
+			Actor()->SetCanSprintState(false);
+		}
+
+		SetPending(true);
+	}
+	break;
+	case eHiding:
+	{
+		if(oldState != eHiding)
+		{
+			if (const auto game_sp = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame()); game_sp && IsShown())
+				game_sp->ShowHideMenu(this);
+			Hide();
+
+			PlayHUDMotion("anm_hide", true, eHiding);
+
+			SetPending(true);
+		}
+	}
+	break;
+	case eHidden:
+	{
+		if(H_Parent())
+			setVisible(false);
+		SetPending(false);
+	}
+	break;
+	case eIdle:
+	{
+		PlayHUDMotion("anm_idle", true, GetState());
+	}
+	break;
+	}
+}
+
+void CUIInventoryWnd::OnAnimationEnd(u32 state)
+{
+	switch (state)
+	{
+	case eShowing:
+	{
+        if (const auto game_sp = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame()); game_sp && !IsShown())
+			game_sp->ShowHideMenu(this);
+		
+		InitInventory			();
+		inherited::Show			();
+
+		SendInfoToActor						("ui_inventory");
+
+		Update								();
+
+		m_b_need_update_stats = true;
+
+		if (Core.Features.test(xrCore::Feature::engine_ammo_repacker) && !Core.Features.test(xrCore::Feature::hard_ammo_reload))
+			if (auto pActor = Actor())
+				pActor->RepackAmmo();
+		
+		SetPending(false);
+		SwitchState(eIdle);
+	}
+	break;
+	case eHiding:
+	{
+		SetPending(false);
+		CHudItem::object().processing_deactivate();
+		CInventoryItem::object().processing_deactivate();
+		g_player_hud->detach_item(this);
+
+		if (Actor())
+			Actor()->SetCanSprintState(true);
+
+		SwitchState(eHidden);
+	}
+	break;
+	default: 	CHudItemObject::OnAnimationEnd(state); break;
+	}
+}
+
+void CUIInventoryWnd::UpdateXForm()
+{
+	CInventoryItem::UpdateXForm();
 }

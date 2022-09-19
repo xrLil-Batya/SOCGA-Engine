@@ -35,17 +35,20 @@ IC bool CAI_Stalker::CTradeItem::operator==(u16 id) const { return (m_item->obje
 bool CAI_Stalker::tradable_item(CInventoryItem* inventory_item, const u16& current_owner_id)
 {
     if (!inventory_item->useful_for_NPC())
-        return (false);
+        return false;
 
     if (CLSID_DEVICE_PDA == inventory_item->object().CLS_ID)
     {
         CPda* pda = smart_cast<CPda*>(inventory_item);
         VERIFY(pda);
         if (pda->GetOriginalOwnerID() == current_owner_id)
-            return (false);
+            return false;
     }
 
-    return (trade_parameters().enabled(CTradeParameters::action_sell(0), inventory_item->object().cNameSect()));
+	if (inventory_item->object().CLS_ID == CLSID_DEVICE_BACKPACK)
+		return false;
+
+    return trade_parameters().enabled(CTradeParameters::action_sell(0), inventory_item->object().cNameSect());
 }
 
 u32 CAI_Stalker::fill_items(CInventory& inventory, CGameObject* old_owner, ALife::_OBJECT_ID new_owner_id)

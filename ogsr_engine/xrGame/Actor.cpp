@@ -927,13 +927,14 @@ void CActor::UpdateCL()
 }
 
 constexpr u32 TASKS_UPDATE_TIME = 1u;
-
 float NET_Jump = 0;
+
+#include "ui/uiinventorywnd.h"
 void CActor::shedule_Update(u32 DT)
 {
     setSVU(OnServer());
 
-    BOOL bHudView = HUDview();
+    bool bHudView = HUDview();
     if (bHudView)
     {
         CInventoryItem* pInvItem = inventory().ActiveItem();
@@ -1047,16 +1048,19 @@ void CActor::shedule_Update(u32 DT)
         if (!Level().IsDemoPlay())
         {
             //-----------------------------------------------------
-            mstate_wishful &= ~mcAccel;
+			if(!smart_cast<CUIInventoryWnd*>(inventory().ActiveItem()))
+			{
+				mstate_wishful &=~mcAccel;
+				bool extern g_bAutoClearCrouch;
+				if (g_bAutoClearCrouch)
+					mstate_wishful &=~mcCrouch;
+			}
             mstate_wishful &= ~mcLStrafe;
             mstate_wishful &= ~mcRStrafe;
             mstate_wishful &= ~mcLLookout;
             mstate_wishful &= ~mcRLookout;
             mstate_wishful &= ~mcFwd;
             mstate_wishful &= ~mcBack;
-            extern bool g_bAutoClearCrouch;
-            if (g_bAutoClearCrouch)
-                mstate_wishful &= ~mcCrouch;
             //-----------------------------------------------------
         }
     }

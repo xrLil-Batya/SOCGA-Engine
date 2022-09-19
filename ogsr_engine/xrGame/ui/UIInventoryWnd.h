@@ -1,6 +1,7 @@
 #pragma once
 
 class CInventory;
+#include "hud_item_object.h"
 
 #include "UIDialogWnd.h"
 #include "UIStatic.h"
@@ -19,163 +20,174 @@ class CUI3tButton;
 class CUIDragDropListEx;
 class CUICellItem;
 
-class CUIInventoryWnd : public CUIDialogWnd
+class CUIInventoryWnd: public CHudItemObject, public CUIDialogWnd
 {
-private:
-    typedef CUIDialogWnd inherited;
-    bool m_b_need_reinit;
-    bool m_b_need_update_stats;
+	using inherited = CUIDialogWnd;
+
+	bool					m_b_need_reinit;
+	bool					m_b_need_update_stats;
+	bool bNeedSwitchState{};
+public:
+							CUIInventoryWnd				();
+	virtual					~CUIInventoryWnd			();
+
+	virtual void Load(LPCSTR section) override;
+
+	virtual void			Init						();
+
+	void					InitInventory				();
+	void					InitInventory_delayed		();
+	virtual bool StopAnyMove() { return !!Core.Features.test(xrCore::Feature::more_hide_weapon); }
+
+	virtual void			SendMessage					(CUIWindow *pWnd, s16 msg, void *pData);
+	virtual bool			OnMouse						(float x, float y, EUIMessages mouse_action);
+	virtual bool			OnKeyboard					(int dik, EUIMessages keyboard_action);
+
+
+	IC CInventory*			GetInventory				()					{return m_pInv;}
+
+	virtual void			Update						();
+	virtual void			Draw						();
+
+	virtual void			Show						();
+	virtual void			Hide						();
+
+	virtual void			Hide(bool) override;
+	virtual void			Show(bool) override;
+
+	void HideSlotsHighlight();
+	void ShowSlotsHighlight(PIItem InvItem);
 
 public:
-    CUIInventoryWnd();
-    virtual ~CUIInventoryWnd();
+	virtual void OnStateSwitch(u32 S, u32 oldState) override;
+	virtual void OnAnimationEnd(u32 state) override;
+	virtual void UpdateXForm() override;
 
-    virtual void Init();
+	virtual void OnActiveItem() override;
+	virtual void OnHiddenItem() override;
 
-    void InitInventory();
-    void InitInventory_delayed();
-    virtual bool StopAnyMove() { return !!Core.Features.test(xrCore::Feature::more_hide_weapon); }
-
-    virtual void SendMessage(CUIWindow* pWnd, s16 msg, void* pData);
-    virtual bool OnMouse(float x, float y, EUIMessages mouse_action);
-    virtual bool OnKeyboard(int dik, EUIMessages keyboard_action);
-
-    IC CInventory* GetInventory() { return m_pInv; }
-
-    virtual void Update();
-    virtual void Draw();
-
-    virtual void Show();
-    virtual void Hide();
-
-    void HideSlotsHighlight();
-    void ShowSlotsHighlight(PIItem InvItem);
-
-    void AddItemToBag(PIItem pItem);
+	void					AddItemToBag				(PIItem pItem);
 
 protected:
-    enum eInventorySndAction
-    {
-        eInvSndOpen = 0,
-        eInvSndClose,
-        eInvItemToSlot,
-        eInvItemToBelt,
-        eInvItemToRuck,
-        eInvProperties,
-        eInvDropItem,
-        eInvAttachAddon,
-        eInvDetachAddon,
-        eInvItemUse,
-        eInvSndMax
-    };
+	enum eInventorySndAction{	eInvSndOpen	=0,
+								eInvSndClose,
+								eInvItemToSlot,
+								eInvItemToBelt,
+								eInvItemToRuck,
+								eInvProperties,
+								eInvDropItem,
+								eInvAttachAddon,
+								eInvDetachAddon,
+								eInvItemUse,
+								eInvSndMax};
 
-    ref_sound sounds[eInvSndMax];
-    void PlaySnd(eInventorySndAction a);
+	ref_sound					sounds					[eInvSndMax];
+	void						PlaySnd					(eInventorySndAction a);
 
-    CUIStatic UIBeltSlots;
-    CUIStatic UIBack;
-    CUIStatic* UIRankFrame;
-    CUIStatic* UIRank;
+	CUIStatic					UIBeltSlots;
+	CUIStatic					UIBack;
+	CUIStatic*					UIRankFrame;
+	CUIStatic*					UIRank;
 
-    CUIStatic UIBagWnd;
-    CUIStatic UIMoneyWnd;
-    CUIStatic UIDescrWnd;
-    CUIFrameWindow UIPersonalWnd;
+	CUIStatic					UIBagWnd;
+	CUIStatic					UIMoneyWnd;
+	CUIStatic					UIDescrWnd;
+	CUIFrameWindow				UIPersonalWnd;
 
-    CUI3tButton* UIExitButton;
+	CUI3tButton*				UIExitButton;
 
-    CUIStatic UIStaticBottom;
-    CUIStatic UIStaticTime;
-    CUIStatic UIStaticTimeString;
+	CUIStatic					UIStaticBottom;
+	CUIStatic					UIStaticTime;
+	CUIStatic					UIStaticTimeString;
 
-    CUIStatic UIStaticPersonal;
+	CUIStatic					UIStaticPersonal;
+		
+	CUIDragDropListEx*			m_pUIBagList;
+	CUIDragDropListEx*			m_pUIBeltList;
 
-    CUIDragDropListEx* m_pUIBagList;
-    CUIDragDropListEx* m_pUIBeltList;
+	CUIDragDropListEx*			m_pUIPistolList;
+	CUIDragDropListEx*			m_pUIAutomaticList;
+	CUIOutfitDragDropList*		m_pUIOutfitList;
 
-    CUIDragDropListEx* m_pUIPistolList;
-    CUIDragDropListEx* m_pUIAutomaticList;
-    CUIOutfitDragDropList* m_pUIOutfitList;
+	CUIDragDropListEx*			m_pUIKnifeList;
+	CUIDragDropListEx*			m_pUIHelmetList;
+	CUIDragDropListEx*			m_pUIBIODetList;
+	CUIDragDropListEx*			m_pUINightVisionList;
+	CUIDragDropListEx*			m_pUIDetectorList;
+	CUIDragDropListEx*			m_pUITorchList;
+	CUIDragDropListEx*			m_pUIBinocularList;
 
-    CUIDragDropListEx* m_pUIKnifeList;
-    CUIDragDropListEx* m_pUIHelmetList;
-    CUIDragDropListEx* m_pUIBIODetList;
-    CUIDragDropListEx* m_pUINightVisionList;
-    CUIDragDropListEx* m_pUIDetectorList;
-    CUIDragDropListEx* m_pUITorchList;
-    CUIDragDropListEx* m_pUIBinocularList;
+	// alpet: для индексированного доступа
+	CUIDragDropListEx*			m_slots_array[ SLOTS_TOTAL ];
 
-    // alpet: для индексированного доступа
-    CUIDragDropListEx* m_slots_array[SLOTS_TOTAL];
+	void						ClearAllLists				();
+	void						BindDragDropListEnents		(CUIDragDropListEx* lst);
+	
+	EListType					GetType						(CUIDragDropListEx* l);
+	CUIDragDropListEx*			GetSlotList					(u8 slot_idx);
 
-    void ClearAllLists();
-    void BindDragDropListEnents(CUIDragDropListEx* lst);
+	bool				OnItemDrop					(CUICellItem* itm);
+	bool				OnItemStartDrag				(CUICellItem* itm);
+	bool				OnItemDbClick				(CUICellItem* itm);
+	bool				OnItemSelected				(CUICellItem* itm);
+	bool				OnItemRButtonClick			(CUICellItem* itm);
 
-    EListType GetType(CUIDragDropListEx* l);
-    CUIDragDropListEx* GetSlotList(u8 slot_idx);
 
-    bool OnItemDrop(CUICellItem* itm);
-    bool OnItemStartDrag(CUICellItem* itm);
-    bool OnItemDbClick(CUICellItem* itm);
-    bool OnItemSelected(CUICellItem* itm);
-    bool OnItemRButtonClick(CUICellItem* itm);
+	CUIStatic					UIProgressBack;
+	CUIStatic					UIProgressBack_rank;
+	CUIProgressBar				UIProgressBarHealth;	
+	CUIProgressBar				UIProgressBarPsyHealth;
+	CUIProgressBar				UIProgressBarRadiation;
+	CUIProgressBar				UIProgressBarRank;
 
-    CUIStatic UIProgressBack;
-    CUIStatic UIProgressBack_rank;
-    CUIProgressBar UIProgressBarHealth;
-    CUIProgressBar UIProgressBarPsyHealth;
-    CUIProgressBar UIProgressBarRadiation;
-    CUIProgressBar UIProgressBarRank;
+	CUIPropertiesBox			UIPropertiesBox;
+	
+	//информация о персонаже
+	CUIOutfitInfo				UIOutfitInfo;
+	CUIItemInfo					UIItemInfo;
 
-    CUIPropertiesBox UIPropertiesBox;
-
-    //информация о персонаже
-    CUIOutfitInfo UIOutfitInfo;
-    CUIItemInfo UIItemInfo;
-
-    CInventory* m_pInv;
-
+	CInventory*					m_pInv;
 public:
-    CUICellItem* m_pCurrentCellItem;
-
+	CUICellItem*				m_pCurrentCellItem;
 protected:
-    bool DropItem(PIItem itm, CUIDragDropListEx* lst);
-    bool TryUseItem(PIItem itm);
-    //----------------------	-----------------------------------------------
-    void SendEvent_Item2Slot(PIItem pItem);
-    void SendEvent_Item2Belt(PIItem pItem);
-    void SendEvent_Item2Ruck(PIItem pItem);
-    void SendEvent_Item_Drop(PIItem pItem);
-    void SendEvent_Item_Eat(PIItem pItem);
-    void SendEvent_ActivateSlot(PIItem pItem);
+	bool						DropItem					(PIItem itm, CUIDragDropListEx* lst);
+	bool						TryUseItem					(PIItem itm);
+	//----------------------	-----------------------------------------------
+	void						SendEvent_Item2Slot			(PIItem	pItem);
+	void						SendEvent_Item2Belt			(PIItem	pItem);
+	void						SendEvent_Item2Ruck			(PIItem	pItem);
+	void						SendEvent_Item_Drop			(PIItem	pItem);
+	void						SendEvent_Item_Eat			(PIItem	pItem);
+	void						SendEvent_ActivateSlot		(PIItem	pItem);
 
-    //---------------------------------------------------------------------
+	//---------------------------------------------------------------------
 
-    void ProcessPropertiesBoxClicked();
-    void ActivatePropertiesBox();
+	void						ProcessPropertiesBoxClicked	();
+	void						ActivatePropertiesBox		();
 
-    void DropCurrentItem(bool b_all);
-    void EatItem(PIItem itm);
+	void						DropCurrentItem				(bool b_all);
+	void						EatItem						(PIItem itm);
+	
+	bool						ToSlot						(CUICellItem* itm, u8 _slot_id, bool force_place);
+	bool						ToSlot						(CUICellItem* itm, bool force_place);
+	bool						ToBag						(CUICellItem* itm, bool b_use_cursor_pos);
+	bool						ToBelt						(CUICellItem* itm, bool b_use_cursor_pos);
 
-    bool ToSlot(CUICellItem* itm, u8 _slot_id, bool force_place);
-    bool ToSlot(CUICellItem* itm, bool force_place);
-    bool ToBag(CUICellItem* itm, bool b_use_cursor_pos);
-    bool ToBelt(CUICellItem* itm, bool b_use_cursor_pos);
 
-    void AttachAddon(PIItem item_to_upgrade);
-    void DetachAddon(const char* addon_name);
+	void						AttachAddon					(PIItem item_to_upgrade);
+	void						DetachAddon					(const char* addon_name);
 
-    void SetCurrentItem(CUICellItem* itm);
-    CUICellItem* CurrentItem();
+	void						SetCurrentItem				(CUICellItem* itm);
+	CUICellItem*				CurrentItem					();
 
-    TIItemContainer ruck_list;
-    u32 m_iCurrentActiveSlot;
-
+	TIItemContainer				ruck_list;
+	u32							m_iCurrentActiveSlot;
 private:
-    bool dont_update_belt_flag{};
-
+	bool dont_update_belt_flag{};
 public:
-    PIItem CurrentIItem();
-    void UpdateWeight();
-    void UpdateOutfit();
+	PIItem						CurrentIItem();
+	void UpdateWeight();
+	void UpdateOutfit();
+
+	virtual CUIInventoryWnd* cast_inventory_wnd() override { return this; };
 };

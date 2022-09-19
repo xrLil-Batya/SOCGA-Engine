@@ -69,9 +69,9 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
             //добавить отсоединенный аддон в инвентарь
             if (pGameSP)
             {
-                if (pGameSP->MainInputReceiver() == pGameSP->InventoryMenu)
+                if (pGameSP->MainInputReceiver() && pGameSP->MainInputReceiver()->cast_inventory_wnd())
                 {
-                    pGameSP->InventoryMenu->AddItemToBag(smart_cast<CInventoryItem*>(O));
+                    pGameSP->MainInputReceiver()->cast_inventory_wnd()->AddItemToBag(smart_cast<CInventoryItem*>(O));
                 }
             }
         }

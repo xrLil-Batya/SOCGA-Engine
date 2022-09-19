@@ -155,8 +155,8 @@ public:
     virtual void UpdateCL();
     virtual void renderable_Render();
 
-    virtual void Hide(bool = false) {}
-    virtual void Show(bool = false) {}
+    virtual void Hide(bool) {}
+    virtual void Show(bool) {}
 
     virtual void UpdateXForm() = 0;
 

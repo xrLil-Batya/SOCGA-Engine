@@ -631,7 +631,7 @@ bool CActor::CanAccelerate()
 
 bool CActor::CanRun()
 {
-    bool can_run = !m_bZoomAimingMode && !(mstate_real & mcLookout);
+    const bool can_run = !m_bZoomAimingMode && !(mstate_real & mcLookout) && can_sprint;
     return can_run;
 }
 
@@ -642,9 +642,13 @@ bool CActor::CanSprint()
     return can_Sprint;
 }
 
+#include "UI/UIInventoryWnd.h"
 bool CActor::CanJump(float weight)
 {
-    bool can_Jump = /*!IsLimping() &&*/
+	if(smart_cast<CUIInventoryWnd*>(inventory().ActiveItem()))
+		return false;
+
+    const bool can_Jump = /*!IsLimping() &&*/
         !character_physics_support()->movement()->PHCapture() && ((mstate_real & mcJump) == 0) && (m_fJumpTime <= 0.f) &&
         (!m_hit_slowmo_jump || (fis_zero(hit_slowmo) && m_time_lock_accel < Device.dwTimeGlobal)) && !m_bJumpKeyPressed // && ((mstate_real&mcCrouch)==0);
         && !conditions().IsCantJump(weight);
@@ -671,10 +675,10 @@ bool CActor::CanMove()
         return false;
     }
 
-    if (IsTalking())
-        return false;
-    else
-        return true;
+	if(smart_cast<CUIInventoryWnd*>(inventory().ActiveItem()))
+		return false;
+
+	return !IsTalking();
 }
 
 void CActor::StopAnyMove()

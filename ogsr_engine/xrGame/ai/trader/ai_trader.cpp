@@ -359,12 +359,15 @@ DLL_Pure* CAI_Trader::_construct()
 bool CAI_Trader::AllowItemToTrade(CInventoryItem const* item, EItemPlace place) const
 {
     if (!g_Alive())
-        return (true);
+        return true;
 
     if (item->object().CLS_ID == CLSID_DEVICE_PDA)
-        return (false);
+        return false;
 
-    return (CInventoryOwner::AllowItemToTrade(item, place));
+	if (item->object().CLS_ID == CLSID_DEVICE_BACKPACK)
+		return false;
+
+    return CInventoryOwner::AllowItemToTrade(item, place);
 }
 
 void CAI_Trader::dialog_sound_start(LPCSTR phrase) { animation().external_sound_start(phrase); }

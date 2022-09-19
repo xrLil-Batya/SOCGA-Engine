@@ -38,8 +38,8 @@ protected:
     virtual void DeviceUpdate() override;
 
 public:
-    virtual void Show(bool = false);
-    virtual void Hide(bool = false);
+    virtual void Show(bool);
+    virtual void Hide(bool);
 
     virtual void Throw();
     virtual void Destroy();

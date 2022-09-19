@@ -156,6 +156,7 @@
 #include "smart_zone.h"
 #include "InventoryBox.h"
 #include "inventoryContainer.h"
+#include "ui/UIInventoryWnd.h"
 
 #define ADD(a, b, c, d) add<a, b>(c, d)
 
@@ -323,6 +324,7 @@ void CObjectFactory::register_classes()
     // Devices
     ADD(CTorch, CSE_ALifeItemTorch, CLSID_DEVICE_TORCH, "device_torch");
     ADD(CPda, CSE_ALifeItemPDA, CLSID_DEVICE_PDA, "device_pda");
+	ADD(CUIInventoryWnd ,CSE_ALifeItem, CLSID_DEVICE_BACKPACK, "dev_rucksack");
 
     // objects
     ADD(CProjector, CSE_ALifeObjectProjector, CLSID_OBJECT_PROJECTOR, "projector");
