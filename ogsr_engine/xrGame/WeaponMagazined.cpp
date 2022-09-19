@@ -1426,7 +1426,7 @@ void CWeaponMagazined::PlayAnimShoot()
     xr_strconcat(guns_shoot_anm, "anm_shoot", (IsZoomed() && !IsRotatingToZoom()) ? (IsScopeAttached() ? "_aim_scope" : "_aim") : "", iAmmoElapsed == 1 ? "_last" : "",
                  IsSilencerAttached() ? "_sil" : "");
 
-    PlayHUDMotion({guns_shoot_anm, "anim_shoot", "anm_shots"}, true, GetState());
+    PlayHUDMotion({guns_shoot_anm, "anm_shoot", "anim_shoot", "anm_shots"}, true, GetState());
 }
 
 void CWeaponMagazined::PlayAnimFakeShoot()
