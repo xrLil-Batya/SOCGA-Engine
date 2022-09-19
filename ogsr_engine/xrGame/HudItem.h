@@ -184,6 +184,12 @@ public:
     virtual bool render_item_3d_ui_query() { return false; }
     virtual bool CheckCompatibility(CHudItem*) { return true; }
 
+	void SetWorldModelMultipleBonesStatus(const char*, const bool);
+	void SetWorldModelBoneStatus(const char*, const bool);
+	void SetHudModelBoneStatus(const char*, const bool);
+	void SetWeaponModelBoneStatus(const char*, const bool);
+	void SetWeaponMultipleBonesStatus(const char*, const bool);
+
 protected:
     BOOL hud_mode;
     shared_str hud_sect;

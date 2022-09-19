@@ -49,3 +49,39 @@ std::string StringToUTF8(const char* in)
     std::use_facet<std::ctype<wchar_t>>(locale).widen(in, in + len, wstr.data());
     return wcvt{}.to_bytes(wstr.data(), wstr.data() + wstr.size());
 }
+
+const bool XRCORE_API GetNextSubStr(std::string& data, std::string& buf, const char separator)
+{
+    u32 p = 0;
+    xr_string& xr_buf = reinterpret_cast<xr_string&>(buf);
+    xr_string& xr_data = reinterpret_cast<xr_string&>(data);
+
+    for (u32 i = 0; i < data.length(); ++i)
+    {
+        if (data[i] == separator)
+        {
+            p = i + 1;
+            break;
+        };
+    }
+
+    if (p)
+    {
+        buf = data.substr(0, p - 1);
+        buf = _Trim(xr_buf);
+        data = data.substr(p, data.length() - p);
+        data = _Trim(xr_data);
+        return true;
+    }
+    else
+    {
+        if (_Trim(xr_data).length())
+        {
+            buf = _Trim(xr_data);
+            data = "";
+            return true;
+        }
+        else
+            return false;
+    }
+}

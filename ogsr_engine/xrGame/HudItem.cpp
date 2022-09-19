@@ -1487,3 +1487,60 @@ void CHudItem::OnAnimationEnd(u32 state)
 }
 
 bool CHudItem::AnmIdleMovingAllowed() const { return !HudBobbingAllowed() || Actor()->PsyAuraAffect; }
+
+void CHudItem::SetWorldModelMultipleBonesStatus(const char* bones, const bool status)
+{
+    std::string bones_string = bones;
+    std::string bone;
+    while (GetNextSubStr(bones_string, bone, ','))
+    {
+        SetWorldModelBoneStatus(bone.c_str(), status);
+    }
+}
+
+void CHudItem::SetWorldModelBoneStatus(const char* bone_name, const bool status)
+{
+    IRenderVisual* v = object().Visual();
+    IKinematics* ik = v->dcast_PKinematics();
+    if (!ik)
+        return;
+
+    const u16 bid = ik->LL_BoneID(bone_name);
+    if (bid != u16(-1))
+    {
+        ik->LL_SetBoneVisible(bid, status, false);
+    }
+}
+
+void CHudItem::SetHudModelBoneStatus(const char* bone_name, const bool status)
+{
+    if (HudItemData())
+    {
+		IKinematics* ik = HudItemData()->m_model;
+        const u16 bid = ik->LL_BoneID(bone_name);
+        if (bid != (u16)(-1))
+        {
+            ik->LL_SetBoneVisible(bid, status, false);
+        }
+    }
+}
+
+void CHudItem::SetWeaponModelBoneStatus(const char* bone_name, const bool status)
+{
+    const auto act = Actor();
+    if (act && smart_cast<CHudItemObject*>(act->inventory().ActiveItem()) == this)
+    {
+        SetHudModelBoneStatus(bone_name, status);
+    }
+    SetWorldModelBoneStatus(bone_name, status);
+}
+
+void CHudItem::SetWeaponMultipleBonesStatus(const char* bones, const bool status)
+{
+    std::string bones_string = bones;
+    std::string bone;
+    while (GetNextSubStr(bones_string, bone, ','))
+    {
+        SetWeaponModelBoneStatus(bone.c_str(), status);
+    }
+}

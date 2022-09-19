@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 #include "stdafx.h"
 
-#include "Weapon.h"
+#include "WeaponMagazinedWGrenade.h"
 #include "ParticlesObject.h"
 #include "entity_alive.h"
 #include "player_hud.h"
@@ -917,6 +917,9 @@ void CWeapon::UpdateCL()
 
     UpdateLaser();
     UpdateFlashlight();
+
+	ProcessAmmo();
+	ProcessAmmoGL();
 }
 
 void CWeapon::UpdateLaser()
@@ -2171,3 +2174,272 @@ void CWeapon::SaveAttachableParams()
 }
 
 void CWeapon::ParseCurrentItem(CGameFont* F) { F->OutNext("WEAPON IN STRAPPED MODE: [%d]", m_strapped_mode); }
+
+const u8 CWeapon::GetAmmoTypeToReload()
+{ //Вернет индекс для текущего активного магазина (т.е. разные в режиме подствола и обычном)
+    u32 result = m_set_next_ammoType_on_reload;
+    if (result == u32(-1))
+        result = GetAmmoTypeIndex(false);
+    return u8(result);
+}
+
+const u8 CWeapon::GetAmmoTypeIndex(const bool second)
+{
+    if (second)
+    {
+		const auto wpn_w_gl = smart_cast<CWeaponMagazinedWGrenade*>(this);
+        return wpn_w_gl ? wpn_w_gl->m_ammoType2 : 0;
+    }
+    else
+    {
+        return m_ammoType;
+    }
+}
+
+const u8 CWeapon::GetOrdinalAmmoType()
+{
+    if (READ_IF_EXISTS(pSettings, r_bool, g_player_hud->section_name(), "ammo_params_use_last_cartridge_type", false) && iAmmoElapsed > 0)
+    {
+        //если указан этот параметр, то в остальных режимах за тип секции отвечает тип последнего патрона
+		const u32 index = iAmmoElapsed - 1;
+		CCartridge* cartridge{};
+		if (IsGrenadeMode())
+		{
+			const auto wpn_gl = smart_cast<CWeaponMagazinedWGrenade*>(this);
+			cartridge = wpn_gl ? &(wpn_gl->m_magazine2[index]) : nullptr;
+		}
+		else
+		{
+			cartridge = &(m_magazine[index]);
+		}
+		
+        return cartridge ? cartridge->m_LocalAmmoType : 0;
+    }
+    else
+    {
+        return GetAmmoTypeIndex(false);
+    }
+}
+
+void CWeapon::ProcessAmmoAdv(const bool forced)
+{
+    const char* hud_sect = HudSection().c_str();
+    bool g_b = IsGrenadeMode();
+
+    if ((!g_b) && (GetState() == eFire) && (!forced) &&
+        READ_IF_EXISTS(pSettings, r_bool, hud_sect, "ammo_params_toggle_shooting", false))
+    {
+        //во время стрельбы не производить обновление костей - нужно для корректных гильз у дробовиков
+        return;
+    }
+
+    u32 cnt = iAmmoElapsed;
+
+    u32 ammotype = 0;
+    if (g_b)
+    {
+        //Оружие в режиме стрельбы подстволом
+        ammotype = GetOrdinalAmmoType();
+    }
+    else if (GetState() == eReload)
+    {
+        if (IsMisfire())
+        {
+            //идет расклин
+            ammotype = GetOrdinalAmmoType();
+        }
+        else if (IsTriStateReload())
+        {
+            //идет перезарядка по типу дробовика
+            ammotype = GetAmmoTypeToReload();
+            cnt++;
+        }
+        else
+        {
+            //идет обычная перезарядка
+            //патрон в патроннике может быть старого типа! учитываем это
+            //обновление синхронно со счетчиком
+            ammotype = GetAmmoTypeIndex(g_b);
+			
+			if(m_current_motion_def)
+			{
+				const float _time = READ_IF_EXISTS(pSettings, r_float, hud_sect, (std::string("lock_time_end_") + GetCurrentMotion()).c_str(), 0) * 1000.f;
+				const float current_time = Device.dwTimeGlobal - m_dwMotionStartTm;
+				if (_time && current_time >= _time) {
+					if(m_set_next_ammoType_on_reload != u32(-1)) {		
+						m_ammoType						= m_set_next_ammoType_on_reload;
+						m_set_next_ammoType_on_reload	= u32(-1);
+					}
+					cnt = static_cast<u32>(iMagazineSize);
+				}
+			}
+
+            //Хак для неправильно заанимированных моделей вроде сайги - при обычных релоадах нам может потребоваться
+            //отображать в магазине на один патрон МЕНЬШЕ чем в реальности - они не учитывают патрон в патроннике!
+            //Поэтому если на счетчике 1, и мы жмем релоад, в магазине будет "лишний" патрон! Хотя магазин как раз
+            //должен быть пуст
+
+            if (READ_IF_EXISTS(pSettings, r_bool, hud_sect, "minus_ammo_in_usual_reloads", false) && (cnt >= 1))
+            {
+                cnt--;
+            }
+        }
+    }
+    else
+    {
+        //не в состоянии перезарядки, подствол выключен
+        ammotype = GetOrdinalAmmoType();
+
+        //Хак для неправильно заанимированных моделей, не учитывающих патрон в патроннике - нам может потребоваться
+        //отображать в магазине на один патрон МЕНЬШЕ
+        if (READ_IF_EXISTS(pSettings, r_bool, hud_sect, "minus_ammo_in_bore", false) && (cnt >= 1))
+        {
+            cnt--;
+        }
+    };
+
+    const char* bones_sect{};
+    std::string sect_w_ammotype = std::string("ammo_params_section_") + std::to_string(ammotype);
+    if (pSettings->line_exist(hud_sect, sect_w_ammotype.c_str()))
+    {
+        bones_sect = pSettings->r_string(hud_sect, sect_w_ammotype.c_str());
+    }
+    else if (pSettings->line_exist(hud_sect, "ammo_params_section"))
+    {
+        bones_sect = pSettings->r_string(hud_sect, "ammo_params_section");
+    }
+
+    if (bones_sect)
+    {
+        if (IsMisfire() && pSettings->line_exist(bones_sect, "additional_ammo_bone_when_jammed") &&
+            pSettings->r_bool(bones_sect, "additional_ammo_bone_when_jammed"))
+        {
+            cnt++;
+        }
+
+        //скрываем все
+        const char* bones = pSettings->r_string(bones_sect, "all_bones");
+        SetWeaponMultipleBonesStatus(bones, false);
+
+        //отображаем нужные
+        std::string param_name = std::string("configuration_") + std::to_string(cnt);
+        if (pSettings->line_exist(bones_sect, param_name.c_str()))
+        {
+            bones = pSettings->r_string(bones_sect, param_name.c_str());
+            SetWeaponMultipleBonesStatus(bones, true);
+        }
+    }
+}
+
+void CWeapon::ProcessAmmoGL(const bool forced)
+{
+	if (!IsGrenadeMode()) return;
+	const char* hud_sect = HudSection().c_str();
+	const auto wpn_w_gl = smart_cast<CWeaponMagazinedWGrenade*>(this);
+	if (!wpn_w_gl)
+		return;
+
+	u32 cnt = wpn_w_gl->iAmmoElapsed;
+	u32 ammotype = 0;
+	if (GetState() == eReload && cnt == 0)
+	{
+		//Тут нужно использовать именно GetAmmoTypeToReload, а не GetGlAmmoType, иначе при смене типа гранаты после выстрела схема не просечет, что нужно изменить скин, и отрисует грену другого типа
+		ammotype = GetAmmoTypeIndex(false);
+		cnt = 1;
+	}
+	else
+		ammotype = GetAmmoTypeIndex(false);
+
+	if(!READ_IF_EXISTS(pSettings, r_bool, hud_sect, "use_ammo_gl_bones", 0))
+		return;
+
+	const char* bones_sect{};
+    std::string sect_w_ammotype = std::string("gl_ammo_params_section_") + std::to_string(ammotype);
+
+	if (pSettings->line_exist(hud_sect, sect_w_ammotype.c_str()))
+		bones_sect = pSettings->r_string(hud_sect, sect_w_ammotype.c_str());
+	else if (pSettings->line_exist(hud_sect, "gl_ammo_params_section"))
+		bones_sect = pSettings->r_string(hud_sect, "gl_ammo_params_section");
+
+	if (bones_sect)
+	{
+		//скрываем все
+		const char* bones = pSettings->r_string(bones_sect, "all_bones");
+		SetWeaponMultipleBonesStatus(bones, false);
+
+		//отображаем нужные
+        if (pSettings->line_exist(bones_sect, std::string("configuration_" + std::to_string(cnt)).c_str()))
+		{
+            bones = pSettings->r_string(bones_sect, std::string("configuration_" + std::to_string(cnt)).c_str());
+			SetWeaponMultipleBonesStatus(bones, true);
+		}
+	}
+}
+
+void CWeapon::ProcessAmmo(const bool forced)
+{
+    const char* hud_sect = HudSection().c_str();
+
+    if (READ_IF_EXISTS(pSettings, r_bool, hud_sect, "use_advanced_ammo_bones", false))
+    {
+        ProcessAmmoAdv(forced);
+        return;
+    }
+	
+    if (!READ_IF_EXISTS(pSettings, r_bool, hud_sect, "use_ammo_bones", false))
+        return;
+
+    std::string prefix = pSettings->r_string(hud_sect, "ammo_bones_prefix");
+	
+    std::string prefix_hide = READ_IF_EXISTS(pSettings, r_string, hud_sect, "ammo_hide_bones_prefix", "");
+    std::string prefix_var = READ_IF_EXISTS(pSettings, r_string, hud_sect, "ammo_var_bones_prefix", "");
+    const u32 start_index = READ_IF_EXISTS(pSettings, r_u32, hud_sect, "start_ammo_bone_index", 0);
+    const u32 limitator = READ_IF_EXISTS(pSettings, r_u32, hud_sect, "end_ammo_bone_index", 0);
+
+    u32 finish_index = start_index + iAmmoElapsed;;
+
+    if (IsMisfire() && pSettings->line_exist(hud_sect, "additional_ammo_bone_when_jammed") &&
+        pSettings->r_bool(hud_sect, "additional_ammo_bone_when_jammed"))
+    {
+        finish_index++;
+    }
+
+    if (pSettings->line_exist(hud_sect, "ammo_divisor_up"))
+    {
+        finish_index = ceil(float(finish_index) / READ_IF_EXISTS(pSettings, r_u32, hud_sect, "ammo_divisor_up", 1));
+    }
+    else if (pSettings->line_exist(hud_sect, "ammo_divisor_down"))
+    {
+        finish_index = iFloor(float(finish_index) / READ_IF_EXISTS(pSettings, r_u32, hud_sect, "ammo_divisor_down", 1));
+    }
+
+    if (finish_index > limitator)
+    {
+        finish_index = limitator;
+    }
+
+    for (u32 i = start_index; i < finish_index; ++i)
+    {
+        SetWeaponModelBoneStatus((prefix + std::to_string(i)).c_str(), true);
+        if (prefix_hide.length())
+        {
+            SetWeaponModelBoneStatus((prefix_hide + std::to_string(i)).c_str(), false);
+        }
+    }
+    for (u32 i = finish_index + 1; i < limitator; ++i)
+    {
+        SetWeaponModelBoneStatus((prefix + std::to_string(i)).c_str(), false);
+        if (prefix_hide.length())
+        {
+            SetWeaponModelBoneStatus((prefix_hide + std::to_string(i)).c_str(), true);
+        }
+    }
+
+    if (prefix_var.length())
+    {
+        for (u32 i = start_index - 1; i < limitator; ++i)
+        {
+            SetWeaponModelBoneStatus((prefix_var + std::to_string(i)).c_str(), i == finish_index);
+        }
+    }
+}

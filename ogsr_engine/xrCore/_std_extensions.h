@@ -169,3 +169,4 @@ inline char* xr_strconcat(StrType& dest, const StrType2& arg1, const Args&... ar
 #define xr_strcat strcat_s
 
 XRCORE_API std::string StringToUTF8(const char* in);
+const bool XRCORE_API GetNextSubStr(std::string& data, std::string& buf, const char separator);

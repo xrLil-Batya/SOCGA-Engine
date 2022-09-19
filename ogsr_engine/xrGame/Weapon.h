@@ -288,6 +288,12 @@ public:
     virtual u32 Cost() const;
     virtual float GetControlInertionFactor() const;
 
+	const u8 GetAmmoTypeToReload();
+	const u8 GetAmmoTypeIndex(const bool second);
+	const u8 GetOrdinalAmmoType();
+	void ProcessAmmoAdv(const bool forced = false);
+	void ProcessAmmoGL(const bool forced = false);
+	void ProcessAmmo(const bool forced = false);
 public:
     virtual EHandDependence HandDependence() const { return eHandDependence; }
     bool IsSingleHanded() const { return m_bIsSingleHanded; }
