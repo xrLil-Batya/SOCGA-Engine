@@ -31,6 +31,7 @@ protected:
     HUD_SOUND sndTactItemOn;
     HUD_SOUND sndAimStart, sndAimEnd;
     HUD_SOUND sndItemOn;
+	HUD_SOUND sndKnifeKick{};
     //звук текущего выстрела
     HUD_SOUND* m_pSndShotCurrent;
 
@@ -62,6 +63,8 @@ protected:
     virtual void switch2_Hiding();
     virtual void switch2_Hidden();
     virtual void switch2_Showing();
+	virtual void switch2_KnifeKick();
+	virtual void KnifeKick_Timer();
 
     virtual void OnShot();
 
@@ -165,6 +168,7 @@ protected:
     bool m_bVision;
     CBinocularsVision* m_binoc_vision;
 
+	bool has_no_kick_anim{}, m_kick{};
     //////////////////////////////////////////////
     // режим приближения
     //////////////////////////////////////////////
@@ -181,6 +185,10 @@ public:
     virtual void save(NET_Packet& output_packet);
     virtual void load(IReader& input_packet);
 
+	inline const bool CanUseKnifeKick() const
+	{
+		return !IsPending() && AnimationExist("anm_kick") && !has_no_kick_anim;
+	}
 protected:
     virtual bool AllowFireWhileWorking() { return false; }
 

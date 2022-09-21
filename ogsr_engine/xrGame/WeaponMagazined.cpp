@@ -25,7 +25,10 @@
 #include "script_game_object.h"
 #include <regex>
 #include "../xr_3da/x_ray.h"
+#include "Level_Bullet_Manager.h"
+#include "../xr_3da/GameMtlLib.h"
 
+constexpr const char* KNIFE_MATERIAL_NAME = "objects\\knife";
 CWeaponMagazined::CWeaponMagazined(LPCSTR name, ESoundTypes eSoundType) : CWeapon(name)
 {
     m_eSoundShow = ESoundTypes(SOUND_TYPE_ITEM_TAKING | eSoundType);
@@ -64,6 +67,7 @@ CWeaponMagazined::~CWeaponMagazined()
     HUD_SOUND::DestroySound(sndItemOn);
     HUD_SOUND::DestroySound(sndAimStart);
     HUD_SOUND::DestroySound(sndAimEnd);
+	HUD_SOUND::DestroySound(sndKnifeKick);
     if (m_binoc_vision)
         xr_delete(m_binoc_vision);
 }
@@ -84,6 +88,7 @@ void CWeaponMagazined::StopHUDSounds()
     HUD_SOUND::StopSound(sndItemOn);
     HUD_SOUND::StopSound(sndAimStart);
     HUD_SOUND::StopSound(sndAimEnd);
+	HUD_SOUND::StopSound(sndKnifeKick);
 
     HUD_SOUND::StopSound(sndShot);
     HUD_SOUND::StopSound(sndSilencerShot);
@@ -150,6 +155,8 @@ void CWeaponMagazined::Load(LPCSTR section)
         HUD_SOUND::LoadSound(section, "snd_zoom_change", sndZoomChange, m_eSoundEmptyClick);
     if (pSettings->line_exist(section, "snd_tact_item_on"))
         HUD_SOUND::LoadSound(section, "snd_tact_item_on", sndTactItemOn, m_eSoundEmptyClick);
+	if (pSettings->line_exist(section, "snd_knife_kick"))
+			HUD_SOUND::LoadSound(section, "snd_knife_kick", sndKnifeKick, m_eSoundShot);
     if (pSettings->line_exist(section, "snd_item_on"))
         HUD_SOUND::LoadSound(section, "snd_item_on", sndItemOn, m_eSoundEmptyClick);
 
@@ -201,6 +208,7 @@ void CWeaponMagazined::Load(LPCSTR section)
     m_str_count_tmpl = READ_IF_EXISTS(pSettings, r_string, "features", "wpn_magazined_str_count_tmpl", "{AE}/{AC}");
 
     CartridgeInTheChamberEnabled = READ_IF_EXISTS(pSettings, r_bool, section, "CartridgeInTheChamberEnabled", false);
+	has_no_kick_anim = READ_IF_EXISTS(pSettings, r_bool, section, "disable_kick_anim", true);
 }
 
 void CWeaponMagazined::FireStart()
@@ -529,6 +537,9 @@ void CWeaponMagazined::OnStateSwitch(u32 S, u32 oldState)
     case eShowing: switch2_Showing(); break;
     case eHiding: switch2_Hiding(); break;
     case eHidden: switch2_Hidden(); break;
+	case eKnifeKick:
+		switch2_KnifeKick();
+		break;
     case eDeviceSwitch:
         PlayAnimDeviceSwitch();
         SetPending(TRUE);
@@ -617,6 +628,7 @@ void CWeaponMagazined::UpdateCL()
 
     UpdateSounds();
     TimeLockAnimation();
+	KnifeKick_Timer();
 }
 
 void CWeaponMagazined::UpdateSounds()
@@ -786,9 +798,11 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
     case eHiding: SwitchState(eHidden); break; // End of Hide
     case eShowing: SwitchState(eIdle); break; // End of Show
     case eIdle: switch2_Idle(); break; // Keep showing idle
-    case eMisfire: SwitchState(eIdle); break; // End of misfire animation
-    case eDeviceSwitch: SwitchState(eIdle); break; // End of device switch animation
-	
+
+    case eMisfire:
+    case eDeviceSwitch:
+	case eKnifeKick: SwitchState(eIdle); break;
+
 	case eFire:
 	case eFire2:
 		SwitchState(eIdle);
@@ -796,6 +810,73 @@ void CWeaponMagazined::OnAnimationEnd(u32 state)
 
     default: inherited::OnAnimationEnd(state);
     }
+}
+
+void CWeaponMagazined::KnifeKick_Timer()
+{
+	if(GetState() != eKnifeKick) return;
+
+	const char* hud_sect = HudSection().c_str();
+	const float _time = READ_IF_EXISTS(pSettings, r_float, hud_sect, (std::string("lock_time_end_") + std::string(m_current_motion.c_str())).c_str(), 0) * 1000.f;
+	const float current_time = Device.dwTimeGlobal - m_dwMotionStartTm;
+
+	if (_time && current_time >= _time && m_kick)
+	{
+		m_kick = false;
+
+		Fvector pos{}, dir{};
+		pos.set(get_LastFP());
+		dir.set(get_LastFD());
+		smart_cast<CEntity*>(H_Parent())->g_fireParams(this, pos, dir);
+
+		ALife::EHitType		cur_eHitType = ALife::g_tfString2HitType("wound_2");
+		float cur_fHit = pSettings->r_float(cNameSect().c_str(), "kick_hit_power");
+		const float cur_fHitImpulse = pSettings->r_float(cNameSect().c_str(), "kick_hit_impulse");
+		const float dist = pSettings->r_float(cNameSect().c_str(), "kick_distance");
+		const float wm_size = pSettings->r_float(cNameSect().c_str(), "kick_wallmark_size");
+
+		CCartridge cartridge{};
+		cartridge.m_buckShot = 1;
+		cartridge.m_impair = 1;
+		cartridge.m_kDisp = 1;
+		cartridge.m_kHit = 1;
+		cartridge.m_kImpulse = 1;
+		cartridge.m_kPierce = 1;
+		cartridge.m_flags.set(CCartridge::cfTracer, false);
+		cartridge.m_flags.set(CCartridge::cfRicochet, false);
+		cartridge.fWallmarkSize = wm_size;
+		cartridge.bullet_material_idx = GMLib.GetMaterialIdx(KNIFE_MATERIAL_NAME);
+
+		const bool send_hit = SendHitAllowed(H_Parent());
+		PlaySound(sndKnifeKick, pos);
+
+		if (ParentIsActor() && !fis_zero(conditionDecreasePerShotOnHit) && GetCondition() < 0.95f)
+			cur_fHit *= (GetCondition() / 0.95f);
+		SBullet& bullet = Level().BulletManager().AddBullet(pos,
+			dir,
+			10000,
+			cur_fHit,
+			cur_fHitImpulse,
+			H_Parent()->ID(),
+			ID(),
+			cur_eHitType,
+			dist,
+			cartridge,
+			send_hit);
+		if (ParentIsActor())
+			bullet.setOnBulletHit(true);
+	}
+}
+
+void CWeaponMagazined::switch2_KnifeKick()
+{
+	VERIFY(GetState() == eKnifeKick);
+
+	SetPending(true);
+	string_path guns_knife_kick_anm;
+	xr_strconcat(guns_knife_kick_anm, "anm_kick", iAmmoElapsed == 0 ? "_empty" : (IsMisfire() ? "_jammed" : ""), (IsGrenadeLauncherAttached() ? (IsGrenadeMode() ? "_g" : "w_gl") : ""));
+	PlayHUDMotion(guns_knife_kick_anm, true, GetState());
+	m_kick = true;
 }
 
 void CWeaponMagazined::switch2_Idle()
@@ -1009,6 +1090,14 @@ bool CWeaponMagazined::Action(s32 cmd, u32 flags)
         }
     }
     break;
+	case kWPN_KNIFEKICK:
+		{
+			if(!CanUseKnifeKick())
+				return false;
+			
+			SwitchState(eKnifeKick);
+			return true;
+		}break;
     }
     return false;
 }
@@ -1455,11 +1544,10 @@ void CWeaponMagazined::PlayAnimDeviceSwitch()
 {
     PlaySound((HeadLampSwitch || NightVisionSwitch) ? sndItemOn : sndTactItemOn, get_LastFP());
 
-    auto wpn = smart_cast<CWeapon*>(this);
     string128 guns_device_anm;
     xr_strconcat(guns_device_anm, LaserSwitch ? "anm_laser_on" : (TorchSwitch ? "anm_torch_on" : ((HeadLampSwitch || NightVisionSwitch) ? "anm_headlamp_on" : "")),
                  IsMisfire()                                                                                              ? "_jammed" :
-                     ((iAmmoElapsed == 0 && !IsGrenadeMode()) || (wpn && wpn->GetAmmoElapsed2() == 0 && IsGrenadeMode())) ? "_empty" :
+                     ((iAmmoElapsed == 0 && !IsGrenadeMode()) || (GetAmmoElapsed2() == 0 && IsGrenadeMode())) ? "_empty" :
                                                                                                                             "",
                  (IsGrenadeLauncherAttached()) ? (!IsGrenadeMode() ? "_w_gl" : "_g") : "");
     if (AnimationExist(guns_device_anm))

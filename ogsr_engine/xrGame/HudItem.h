@@ -39,6 +39,7 @@ public:
         eReady,
         eThrow,
         eThrowEnd,
+		eKnifeKick,
     };
 
 private:
