@@ -2,8 +2,6 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_HW_H__0E25CF4A_FFEC_11D3_B4E3_4854E82A090D__INCLUDED_)
-#define AFX_HW_H__0E25CF4A_FFEC_11D3_B4E3_4854E82A090D__INCLUDED_
 #pragma once
 
 #include "hwcaps.h"
@@ -26,6 +24,8 @@ public:
     void CreateD3D();
     void DestroyD3D();
     void CreateDevice(HWND hw, bool move_window);
+    void CreateSwapChain(HWND hwnd);
+    bool CreateSwapChain2(HWND hwnd);
 
     void DestroyDevice();
 
@@ -70,6 +70,15 @@ public:
     D3D_DRIVER_TYPE m_DriverType; //	DevT equivalent
     DXGI_SWAP_CHAIN_DESC m_ChainDesc; //	DevPP equivalent
     D3D_FEATURE_LEVEL FeatureLevel;
+
+    bool ComputeShadersSupported;
+#ifdef HAS_DX11_2
+    IDXGIFactory2* m_pFactory2{};
+    IDXGISwapChain2* m_pSwapChain2{};
+#endif
+#ifdef HAS_DX11_3
+    ID3D11Device3* pDevice3{};
+#endif
 #elif defined(USE_DX10)
 public:
     IDXGIFactory* pFactory = nullptr;
@@ -112,6 +121,7 @@ public:
     void UpdateViews();
     DXGI_RATIONAL selectRefresh(u32 dwWidth, u32 dwHeight, DXGI_FORMAT fmt);
 
+    bool UsingFlipPresentationModel() const;
     virtual void OnAppActivate();
     virtual void OnAppDeactivate();
 #endif //	USE_DX10
@@ -121,5 +131,3 @@ private:
 };
 
 extern ECORE_API CHW HW;
-
-#endif // !defined(AFX_HW_H__0E25CF4A_FFEC_11D3_B4E3_4854E82A090D__INCLUDED_)
