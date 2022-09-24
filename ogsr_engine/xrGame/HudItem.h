@@ -40,6 +40,8 @@ public:
         eThrow,
         eThrowEnd,
 		eKnifeKick,
+		ePrevFireMode,
+		eNextFireMode,
     };
 
 private:
@@ -191,6 +193,7 @@ public:
 	void SetWeaponModelBoneStatus(const char*, const bool);
 	void SetWeaponMultipleBonesStatus(const char*, const bool);
 
+	virtual const char* GetFireModeMask() { return ""; }
 protected:
     BOOL hud_mode;
     shared_str hud_sect;

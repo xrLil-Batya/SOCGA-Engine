@@ -64,6 +64,8 @@ protected:
     virtual void switch2_Hidden();
     virtual void switch2_Showing();
 	virtual void switch2_KnifeKick();
+	virtual void switch2_PrevFireMode();
+	virtual void switch2_NextFireMode();
 	virtual void KnifeKick_Timer();
 
     virtual void OnShot();
@@ -185,6 +187,7 @@ public:
     virtual void save(NET_Packet& output_packet);
     virtual void load(IReader& input_packet);
 
+	virtual const char* GetFireModeMask() override;
 	inline const bool CanUseKnifeKick() const
 	{
 		return !IsPending() && AnimationExist("anm_kick") && !has_no_kick_anim;
