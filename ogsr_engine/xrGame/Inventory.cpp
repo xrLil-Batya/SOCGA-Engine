@@ -17,7 +17,7 @@
 #include "game_base_space.h"
 #include "clsid_game.h"
 #include "CustomOutfit.h"
-#include "HudItem.h"
+#include "player_hud.h"
 #include "PDA.h"
 
 #include "UIGameSP.h"
@@ -124,7 +124,7 @@ void CInventory::Clear()
     InvalidateState();
 }
 
-void CInventory::Take(CGameObject* pObj, bool bNotActivate, bool strict_placement)
+void CInventory::Take(CGameObject* const pObj, bool bNotActivate, const bool strict_placement, const bool use_pickup_anim)
 {
     CInventoryItem* pIItem = smart_cast<CInventoryItem*>(pObj);
     VERIFY(pIItem);
@@ -143,7 +143,7 @@ void CInventory::Take(CGameObject* pObj, bool bNotActivate, bool strict_placemen
     R_ASSERT(CanTakeItem(pIItem));
 
     pIItem->m_pCurrentInventory = this;
-    pIItem->SetDropManual(FALSE);
+    pIItem->SetDropManual(false);
 
     m_all.push_back(pIItem);
 
@@ -223,6 +223,9 @@ void CInventory::Take(CGameObject* pObj, bool bNotActivate, bool strict_placemen
 
     pIItem->object().processing_deactivate();
     VERIFY(pIItem->m_eItemPlace != eItemPlaceUndefined);
+
+	if(use_pickup_anim)
+		g_player_hud->SecondHandSwitchState(eTakeItem);
 }
 
 bool CInventory::DropItem(CGameObject* pObj)

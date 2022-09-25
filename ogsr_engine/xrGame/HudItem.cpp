@@ -216,18 +216,12 @@ bool CHudItem::Action(s32 cmd, u32 flags) { return false; }
 
 void CHudItem::SwitchState(u32 S)
 {
-    if (OnClient())
-        return;
-
     SetNextState(S); // Very-very important line of code!!! :)
 
     if (object().Local() && !object().getDestroy())
     {
         // !!! Just single entry for given state !!!
-        NET_Packet P;
-        object().u_EventGen(P, GE_WPN_STATE_CHANGE, object().ID());
-        P.w_u8(u8(S));
-        object().u_EventSend(P);
+		OnStateSwitch(S, GetState());
     }
 }
 
@@ -260,6 +254,22 @@ void CHudItem::OnStateSwitch(u32 S, u32 oldState)
         PlayAnimSprintStart();
     else if (S == eSprintEnd)
         PlayAnimSprintEnd();
+	else if(S == eSecondHandAction)
+	{
+		SprintType = false;
+		if(const auto wpn = smart_cast<CWeaponMagazined*>(this))
+		{
+			SetPending(true);
+
+			string_path socga_item_take_anm{}, socga_item_take_anm2{};
+			xr_strconcat(socga_item_take_anm, "anm_headlamp_on", wpn->GetFireModeMask(), wpn->IsMisfire() ? "_jammed" : ((wpn->IsGrenadeMode() ? wpn->GetAmmoElapsed2() : wpn->GetAmmoElapsed()) == 0 ? "_empty" : ""), wpn->IsGrenadeLauncherAttached() ? (!wpn->IsGrenadeMode() ? "_w_gl" : "_g") : "");
+			xr_strconcat(socga_item_take_anm2, "anm_headlamp_on", wpn->IsMisfire() ? "_jammed" : ((wpn->IsGrenadeMode() ? wpn->GetAmmoElapsed2() : wpn->GetAmmoElapsed()) == 0 ? "_empty" : ""), wpn->IsGrenadeLauncherAttached() ? (!wpn->IsGrenadeMode() ? "_w_gl" : "_g") : "");
+			if(!PlayHUDMotion({socga_item_take_anm, socga_item_take_anm2}, true, eSecondHandAction))
+				SwitchState(eIdle);
+		}
+		else
+			SwitchState(eIdle);
+	}
     else if (S != eIdle)
         SprintType = false;
 	
@@ -1483,6 +1493,9 @@ void CHudItem::OnAnimationEnd(u32 state)
 {
     switch (state)
     {
+	case eSecondHandAction:
+        SwitchState(eIdle);
+        break;
     case eSprintStart:
         SprintType = true;
         SwitchState(eIdle);

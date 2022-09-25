@@ -43,7 +43,7 @@ public:
     float TotalWeight() const;
     float CalcTotalWeight();
 
-    void Take(CGameObject* pObj, bool bNotActivate, bool strict_placement);
+    void Take(CGameObject* const pObj, bool bNotActivate, const bool strict_placement, const bool use_pickup_anim = false);
     bool DropItem(CGameObject* pObj);
     void Clear();
 

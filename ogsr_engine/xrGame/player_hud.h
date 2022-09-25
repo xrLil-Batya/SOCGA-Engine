@@ -129,7 +129,7 @@ struct attachable_hud_item
     u32 anim_play(const shared_str& anim_name, BOOL bMixIn, const CMotionDef*& md, u8& rnd, bool randomAnim);
 };
 
-enum eMovementLayers
+enum eMovementLayers : u8
 {
 	eAimWalk = 0,
 	eAimCrouch,
@@ -210,6 +210,12 @@ struct movement_layer
 	}
 };
 
+enum eSecondHandStates : u8
+{
+	eNoState,
+	eTakeItem,
+};
+
 class player_hud
 {
 public:
@@ -275,6 +281,18 @@ private:
     xr_vector<u16> m_ancors;
     attachable_hud_item* m_attached_items[2]{};
     xr_vector<attachable_hud_item*> m_pool;
+
+public:
+	eSecondHandStates second_hand_state = eNoState;
+
+	void SecondHandSwitchState(const eSecondHandStates state);
+	void SecondHandOnMotionEnd();
+
+	const u32 SecondHandAnimPlay(const char* section, const char* anm_name, const bool bMixIn = true, const float speed = 1.f);
+	bool second_hand_is_pending{};
+	u32 curr_second_hand_motion_length{};
+
+	const bool can_play_second_hand_animation() const;
 };
 
 extern player_hud* g_player_hud;

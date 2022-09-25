@@ -6,8 +6,11 @@
 #include "Weapon.h"
 #include "ui_base.h"
 #include "level.h"
+#include "ai_sounds.h"
+#include "HudSound.h"
 
 player_hud* g_player_hud{};
+static HUD_SOUND snd_second_hand_states{};
 
 player_hud_motion* player_hud_motion_container::find_motion(const shared_str& name)
 {
@@ -635,6 +638,8 @@ player_hud::~player_hud()
     }
     m_pool.clear();
 	delete_data(m_movement_layers);
+
+	HUD_SOUND::DestroySound(snd_second_hand_states);
 }
 
 void player_hud::load(const shared_str& player_hud_sect)
@@ -702,7 +707,8 @@ void player_hud::load(const shared_str& player_hud_sect)
     if (!b_reload)
     {
         m_model->PlayCycle("hand_idle_doun");
-        m_model_2->PlayCycle("hand_idle_doun");
+		if(!second_hand_is_pending)
+			m_model_2->PlayCycle("hand_idle_doun");
     }
     else
     {
@@ -721,11 +727,9 @@ void player_hud::load(const shared_str& player_hud_sect)
 bool player_hud::render_item_ui_query()
 {
     bool res = false;
-    if (m_attached_items[0])
-        res |= m_attached_items[0]->render_item_ui_query();
-
-    if (m_attached_items[1])
-        res |= m_attached_items[1]->render_item_ui_query();
+	res |= m_attached_items[0] && m_attached_items[0]->render_item_ui_query();
+	res |= m_attached_items[1] && m_attached_items[1]->render_item_ui_query();
+	res |= second_hand_is_pending;
 
     return res;
 }
@@ -741,29 +745,28 @@ void player_hud::render_item_ui()
 
 void player_hud::render_hud()
 {
-    if (!m_attached_items[0] && !m_attached_items[1])
-        return;
+    const bool b_r0 = (m_attached_items[0] && m_attached_items[0]->need_renderable());
+    const bool b_r1 = (m_attached_items[1] && m_attached_items[1]->need_renderable());
+    const bool b_has_hands = (m_attached_items[0] && m_attached_items[0]->m_has_separated_hands) || (m_attached_items[1] && m_attached_items[1]->m_has_separated_hands) || second_hand_is_pending;
+	const bool need_render_model_1 = b_r0;
+	const bool need_render_model_2 = need_render_model_1 || second_hand_is_pending || b_r1;
 
-    bool b_r0 = (m_attached_items[0] && m_attached_items[0]->need_renderable());
-    bool b_r1 = (m_attached_items[1] && m_attached_items[1]->need_renderable());
-    bool b_has_hands = (m_attached_items[0] && m_attached_items[0]->m_has_separated_hands) || (m_attached_items[1] && m_attached_items[1]->m_has_separated_hands);
-
-    if (!b_r0 && !b_r1)
-        return;
-
-    if (b_has_hands)
+    if (b_has_hands && need_render_model_2)
     {
-        ::Render->set_Transform(&m_transform);
-        ::Render->add_Visual(m_model->dcast_RenderVisual());
+		if(need_render_model_1)
+		{
+			::Render->set_Transform(&m_transform);
+			::Render->add_Visual(m_model->dcast_RenderVisual());
+		}
 
         ::Render->set_Transform(&m_transform_2);
         ::Render->add_Visual(m_model_2->dcast_RenderVisual());
     }
 
-    if (m_attached_items[0])
+    if (m_attached_items[0] && b_r0)
         m_attached_items[0]->render();
 
-    if (m_attached_items[1])
+    if (m_attached_items[1] && b_r1)
         m_attached_items[1]->render();
 }
 
@@ -800,6 +803,16 @@ u32 player_hud::motion_length(const motion_descr& M, const CMotionDef*& md, floa
 
 void player_hud::update(const Fmatrix& cam_trans)
 {
+	if(curr_second_hand_motion_length && (Device.dwTimeGlobal > curr_second_hand_motion_length) && second_hand_is_pending)
+	{
+		curr_second_hand_motion_length = 0;
+		second_hand_is_pending = false;
+
+		re_sync_anim(2);
+		OnMovementChanged(static_cast<ACTOR_DEFS::EMoveCommand>(0));
+		SecondHandOnMotionEnd();
+	}
+
     //Костыли для правильной работы системы коллизии худа. Это всё плохо и надо будет как-то переделать в будущем. Здесь два апдейта худа подряд делаются для того, чтобы менеджер
     //коллизи мог получить координаты ствола в обычном режиме, из которых уже будет делаться рейтрейс. skip_updated_frame тоже к этому относится.
     static bool need_update_collision{};
@@ -1008,7 +1021,7 @@ u32 player_hud::anim_play(u16 part, const motion_descr& M, BOOL bMixIn, const CM
                     R_ASSERT(B);
                     B->speed *= speed;
                 }
-                if (pid == 0 || pid == 1)
+                if ((pid == 0 || pid == 1) && !second_hand_is_pending)
                 {
                     CBlend* B = m_model_2->PlayCycle(pid, M.mid, bMixIn);
                     R_ASSERT(B);
@@ -1037,7 +1050,7 @@ u32 player_hud::anim_play(u16 part, const motion_descr& M, BOOL bMixIn, const CM
         {
             for (u8 pid = 0; pid < 3; pid++)
             {
-                if (pid != 2)
+                if (pid != 2 && !second_hand_is_pending)
                 {
                     CBlend* B = m_model_2->PlayCycle(pid, M.mid, bMixIn);
                     R_ASSERT(B);
@@ -1117,12 +1130,15 @@ void player_hud::detach_item_idx(u16 idx)
     {
         if (idx == 1)
         {
-            if (m_attached_items[0])
-                re_sync_anim(2);
-            else
-            {
-                m_model_2->PlayCycle("hand_idle_doun");
-            }
+			if (!second_hand_is_pending)
+			{
+				if (m_attached_items[0])
+					re_sync_anim(2);
+				else
+				{
+					m_model_2->PlayCycle("hand_idle_doun");
+				}
+			}
         }
         else if (idx == 0)
         {
@@ -1146,7 +1162,8 @@ void player_hud::detach_item_idx(u16 idx)
         if (!m_attached_items[0] && !m_attached_items[1])
         {
             m_model->PlayCycle("hand_idle_doun");
-            m_model_2->PlayCycle("hand_idle_doun");
+			if (!second_hand_is_pending)
+				m_model_2->PlayCycle("hand_idle_doun");
         }
     }
 
@@ -1230,12 +1247,18 @@ void player_hud::re_sync_anim(u8 part)
                 CBlend* B = m_model->PlayCycle(0, M, TRUE);
                 B->timeCurrent = BR->timeCurrent;
                 B->speed = BR->speed;
-                B = m_model_2->PlayCycle(0, M, TRUE);
-                B->timeCurrent = BR->timeCurrent;
-                B->speed = BR->speed;
+				if (!second_hand_is_pending)
+				{
+					B = m_model_2->PlayCycle(0, M, TRUE);
+					B->timeCurrent = BR->timeCurrent;
+					B->speed = BR->speed;
+				}
             }
             else if (pid != part)
             {
+				if(part != 1 && second_hand_is_pending)
+					continue;
+
                 CBlend* B = part == 1 ? m_model->PlayCycle(pid, M, TRUE) : m_model_2->PlayCycle(pid, M, TRUE);
                 B->timeCurrent = BR->timeCurrent;
                 B->speed = BR->speed;
@@ -1356,4 +1379,108 @@ void player_hud::Thumb02Callback(CBoneInstance* B)
     rotation.mulA_43(rotation_y);
 
     B->mTransform.mulB_43(rotation);
+}
+
+#include "ui/UIInventoryWnd.h"
+#include "PDA.h"
+const bool player_hud::can_play_second_hand_animation() const
+{
+	if(Actor()->HasInfo("anim_action"))
+		return false;
+
+	if(m_attached_items[0] && (smart_cast<CUIInventoryWnd*>(m_attached_items[0]->m_parent_hud_item) || smart_cast<CPda*>(m_attached_items[0]->m_parent_hud_item)))
+		return false;
+
+	if(second_hand_is_pending)
+		return false;
+
+	if (m_attached_items[0] && m_attached_items[0]->m_parent_hud_item)
+	{
+		m_attached_items[0]->m_parent_hud_item->SwitchState(CHUDState::eSecondHandAction);
+		m_attached_items[0]->m_parent_hud_item->StopHUDSounds();
+		Actor()->Cameras().RemoveCamEffector(eCEWeaponAction);
+	}
+	if (m_attached_items[1] && m_attached_items[1]->m_parent_hud_item && m_attached_items[1]->m_parent_hud_item->IsPending())
+	{
+		m_attached_items[1]->m_parent_hud_item->SwitchState(CHUDState::eIdle);
+
+		m_attached_items[1]->m_parent_hud_item->StopHUDSounds();
+		Actor()->Cameras().RemoveCamEffector(eCEWeaponAction);
+
+		m_attached_items[1]->m_parent_hud_item->SetPending(false);
+	}
+
+	return true;
+}
+
+void player_hud::SecondHandSwitchState(const eSecondHandStates state)
+{
+	switch(state)
+	{
+		case eTakeItem:
+		{
+			if(SecondHandAnimPlay("item_take_hud", "anm_item_take"))
+			{
+				HUD_SOUND::LoadSound("item_take_hud", "snd_item_take", snd_second_hand_states, SOUND_TYPE_ITEM_PICKING_UP);
+				HUD_SOUND::PlaySound(snd_second_hand_states, Actor()->Position(), Actor(), true);
+				
+				second_hand_state = state;
+			}
+			
+			break;
+		}
+	}
+}
+
+void player_hud::SecondHandOnMotionEnd()
+{
+	switch(second_hand_state)
+	{
+	}
+	second_hand_state = eNoState;
+}
+
+const u32 player_hud::SecondHandAnimPlay(const char* section, const char* anm_name, const bool bMixIn, const float speed)
+{
+	if(!can_play_second_hand_animation())
+		return 0;
+
+	second_hand_is_pending = true;
+	if (!pSettings->section_exist(section))
+	{
+		Msg("!motion section [%s] does not exist", section);
+		//m_bStopAtEndAnimIsRunning = true;
+		return 0;
+	}
+
+	const auto attach_temp = xr_new<attachable_hud_item>(this);
+	player_hud_motion_container pm;
+	pm.load(attach_temp, m_model_2, m_model_2, section);
+
+	const auto phm = pm.find_motion(anm_name);
+	if (!phm)
+	{
+		Msg("!motion [%s] not found in section [%s]", anm_name, section);
+		return 0;
+	}
+
+	const motion_descr& M = phm->m_animations[Random.randI(phm->m_animations.size())];
+
+	auto B = m_model_2->PlayCycle(0, M.mid, bMixIn);
+	B->speed *= speed;
+	B = m_model_2->PlayCycle(1, M.mid, bMixIn);
+	B->speed *= speed;
+
+	const CMotionDef* md{};
+	u32 length = motion_length(M, md, speed, true, nullptr, nullptr);
+
+	if (length)
+	{
+		curr_second_hand_motion_length = Device.dwTimeGlobal + length;
+	}
+	else
+		second_hand_is_pending = false;
+
+	updateMovementLayerState();
+	return length;
 }

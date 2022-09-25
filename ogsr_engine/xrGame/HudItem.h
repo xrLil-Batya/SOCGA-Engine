@@ -42,6 +42,7 @@ public:
 		eKnifeKick,
 		ePrevFireMode,
 		eNextFireMode,
+		eSecondHandAction,
     };
 
 private:

@@ -53,11 +53,12 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
 
         if (inventory().CanTakeItem(smart_cast<CInventoryItem*>(_GO)))
         {
-            O->H_SetParent(smart_cast<CObject*>(this));
+            _GO->H_SetParent(this);
 
-            inventory().Take(_GO, false, true);
+			const bool use_pickup_anim = (type == GE_OWNERSHIP_TAKE) && (Position().distance_to(_GO->Position()) > 0.2f);
+            inventory().Take(_GO, false, true, use_pickup_anim);
 
-            CUIGameSP* pGameSP = NULL;
+            CUIGameSP* pGameSP{};
             CUI* ui = HUD().GetUI();
             if (ui && ui->UIGame())
             {
@@ -71,7 +72,7 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
             {
                 if (pGameSP->MainInputReceiver() && pGameSP->MainInputReceiver()->cast_inventory_wnd())
                 {
-                    pGameSP->MainInputReceiver()->cast_inventory_wnd()->AddItemToBag(smart_cast<CInventoryItem*>(O));
+                    pGameSP->MainInputReceiver()->cast_inventory_wnd()->AddItemToBag(smart_cast<CInventoryItem*>(_GO));
                 }
             }
         }
@@ -79,7 +80,7 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
         {
             NET_Packet _P;
             u_EventGen(_P, GE_OWNERSHIP_REJECT, ID());
-            _P.w_u16(u16(O->ID()));
+            _P.w_u16(u16(_GO->ID()));
             u_EventSend(_P);
         }
     }
