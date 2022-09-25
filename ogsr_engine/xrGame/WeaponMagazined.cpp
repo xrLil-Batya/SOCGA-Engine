@@ -371,8 +371,6 @@ void CWeaponMagazined::ReloadMagazine()
     if (IsMisfire() && !IsGrenadeMode())
     {
         SwitchMisfire(false);
-        if (GetAmmoElapsed() > 0)
-            SetAmmoElapsed(GetAmmoElapsed() - 1);
         return;
     }
 
