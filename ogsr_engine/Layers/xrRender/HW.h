@@ -39,6 +39,11 @@ public:
     void updateWindowProps(HWND hw);
     BOOL support(D3DFORMAT fmt, DWORD type, DWORD usage);
 
+	inline const bool IsStaticRenderMode() const
+	{
+		return strstr(Core.Params, "-static_lightning");
+	}
+
 #ifdef DEBUG
 #if defined(USE_DX10) || defined(USE_DX11)
     void Validate(void){};

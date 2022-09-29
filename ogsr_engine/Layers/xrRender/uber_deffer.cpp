@@ -12,7 +12,7 @@ void uber_deffer(CBlender_Compile& C, bool hq, LPCSTR _vspec, LPCSTR _pspec, BOO
     fix_texture_name(fname);
     ref_texture _t;
     _t.create(fname);
-    bool bump = _t.bump_exist();
+    const bool bump = !HW.IsStaticRenderMode() && _t.bump_exist();
 
     // detect lmap
     bool lmap = true;
@@ -224,7 +224,7 @@ void uber_shadow(CBlender_Compile& C, LPCSTR _vspec)
     fix_texture_name(fname);
     ref_texture _t;
     _t.create(fname);
-    bool bump = _t.bump_exist();
+    const bool bump = !HW.IsStaticRenderMode() && _t.bump_exist();
 
     // detect lmap
     bool lmap = true;
