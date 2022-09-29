@@ -169,6 +169,20 @@ void Startup()
     execUserScript();
     InitSound2();
 
+    const char* preset{};
+    if(strstr(Core.Params, "-minimum"))
+        preset = "_preset Minimum";
+    else if(strstr(Core.Params, "-low"))
+        preset = "_preset Low";
+    else if(strstr(Core.Params, "-middle"))
+        preset = "_preset Default";
+    else if(strstr(Core.Params, "-high"))
+        preset = "_preset High";
+    else if(strstr(Core.Params, "-maximum"))
+        preset = "_preset Extreme";
+    if(preset)
+        Console->Execute(preset);
+
     // ...command line for auto start
     {
         LPCSTR pStartup = strstr(Core.Params, "-start ");
