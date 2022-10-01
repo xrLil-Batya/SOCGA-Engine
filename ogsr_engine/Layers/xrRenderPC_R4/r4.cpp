@@ -274,7 +274,7 @@ void CRender::create()
     o.sunfilter = (strstr(Core.Params, "-sunfilter")) ? TRUE : FALSE;
     //.	o.sunstatic			= (strstr(Core.Params,"-sunstatic"))?	TRUE	:FALSE	;
     o.sunstatic = r2_sun_static || HW.IsStaticRenderMode();
-    o.advancedpp = r2_advanced_pp;
+    o.advancedpp = r2_advanced_pp && !HW.IsStaticRenderMode();
     o.volumetricfog = ps_r2_ls_flags.test(R3FLAG_VOLUMETRIC_SMOKE);
     o.sjitter = (strstr(Core.Params, "-sjitter")) ? TRUE : FALSE;
     o.depth16 = (strstr(Core.Params, "-depth16")) ? TRUE : FALSE;
