@@ -102,33 +102,31 @@ void CTextureDescrMngr::LoadTHM(LPCSTR initial)
 #ifdef DEBUG
     Msg("count of .thm files=%d", flist.size());
 #endif // #ifdef DEBUG
-    FS_FileSetIt It = flist.begin();
-    FS_FileSetIt It_e = flist.end();
     STextureParams tp;
     string_path fn;
 
     m_texture_details.reserve(m_texture_details.size() + flist.size());
     m_detail_scalers.reserve(m_detail_scalers.size() + flist.size());
 
-    for (; It != It_e; ++It)
+    for (const auto It : flist)
     {
-        FS.update_path(fn, initial, (*It).name.c_str());
-        IReader* F = FS.r_open(fn);
-        xr_strcpy(fn, (*It).name.c_str());
+        FS.update_path(fn, initial, It.name.c_str());
+        auto F = FS.r_open(fn);
+        xr_strcpy(fn, It.name.c_str());
         fix_texture_thm_name(fn);
 
-        R_ASSERT(F->find_chunk_thm(THM_CHUNK_TYPE, fn));
-        F->r_u32();
+        bool soc_format{};
+        if(F->find_chunk_thm(THM_CHUNK_TYPE, fn) >= 5)
+        {
+            F->r_u32();
+            soc_format = F->r_u8(); // THM Editor
+        }
         tp.Clear();
         tp.Load(*F, fn);
         FS.r_close(F);
-        if (
-#ifdef USE_SHOC_THM_FORMAT
-            STextureParams::ttImage == tp.fmt || STextureParams::ttTerrain == tp.fmt || STextureParams::ttNormalMap == tp.fmt
-#else
-            STextureParams::ttImage == tp.type || STextureParams::ttTerrain == tp.type || STextureParams::ttNormalMap == tp.type
-#endif
-        )
+
+        const auto tex_type = soc_format ? tp.fmt : tp.type;
+        if (STextureParams::ttImage == tex_type || STextureParams::ttTerrain == tex_type || STextureParams::ttNormalMap == tex_type)
         {
             texture_desc& desc = m_texture_details[fn];
             cl_dt_scaler*& dts = m_detail_scalers[fn];
