@@ -11,12 +11,11 @@ CEliteDetector::CEliteDetector() { m_artefacts.m_af_rank = 3; }
 
 void CEliteDetector::CreateUI()
 {
-    R_ASSERT(!m_ui);
     m_ui = xr_new<CUIArtefactDetectorElite>();
     ui().construct(this);
 }
 
-CUIArtefactDetectorElite& CEliteDetector::ui() { return *((CUIArtefactDetectorElite*)m_ui); }
+CUIArtefactDetectorElite& CEliteDetector::ui() { if(!m_ui) CreateUI(); return *smart_cast<CUIArtefactDetectorElite*>(m_ui); }
 void CEliteDetector::UpdateAf()
 {
     ui().Clear();

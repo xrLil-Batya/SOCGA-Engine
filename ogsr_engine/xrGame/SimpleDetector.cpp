@@ -8,12 +8,11 @@ CSimpleDetector::CSimpleDetector() { m_artefacts.m_af_rank = 1; }
 
 void CSimpleDetector::CreateUI()
 {
-    R_ASSERT(!m_ui);
     m_ui = xr_new<CUIArtefactDetectorSimple>();
     ui().construct(this);
 }
 
-CUIArtefactDetectorSimple& CSimpleDetector::ui() { return *((CUIArtefactDetectorSimple*)m_ui); }
+CUIArtefactDetectorSimple& CSimpleDetector::ui() { if(!m_ui) CreateUI(); return *smart_cast<CUIArtefactDetectorSimple*>(m_ui); }
 void CSimpleDetector::UpdateAf()
 {
     if (m_artefacts.m_ItemInfos.empty())

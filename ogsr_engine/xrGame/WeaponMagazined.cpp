@@ -20,6 +20,7 @@
 #include "WeaponBinocularsVision.h"
 #include "ai_object_location.h"
 
+#include "CustomOutfit.h"
 #include "game_object_space.h"
 #include "script_callback_ex.h"
 #include "script_game_object.h"
@@ -1088,7 +1089,7 @@ bool CWeaponMagazined::Action(s32 cmd, u32 flags)
     }
     break;
     case kTORCH: {
-        auto pActorTorch = smart_cast<CActor*>(H_Parent())->inventory().ItemFromSlot(TORCH_SLOT);
+        auto pActorTorch = Actor()->inventory().ItemFromSlot(TORCH_SLOT);
         if ((flags & CMD_START) && pActorTorch && GetState() == eIdle)
         {
             HeadLampSwitch = true;
@@ -1098,8 +1099,9 @@ bool CWeaponMagazined::Action(s32 cmd, u32 flags)
     }
     break;
     case kNIGHT_VISION: {
-        auto pActorNv = smart_cast<CActor*>(H_Parent())->inventory().ItemFromSlot(IS_OGSR_GA ? NIGHT_VISION_SLOT : TORCH_SLOT);
-        if ((flags & CMD_START) && pActorNv && GetState() == eIdle)
+        const auto pCO = Actor()->GetOutfit();
+        const auto pActorNv = Actor()->inventory().ItemFromSlot(IS_OGSR_GA ? NIGHT_VISION_SLOT : TORCH_SLOT);
+        if ((flags & CMD_START) && pCO && pCO->m_NightVisionSect.size() && pActorNv && GetState() == eIdle)
         {
             NightVisionSwitch = true;
             DeviceSwitch();
@@ -1551,13 +1553,30 @@ void CWeaponMagazined::PlayAnimIdle()
     }
 }
 
+const bool CWeaponMagazined::NeedShootMix() const
+{
+	const char* hud_sect = HudSection().c_str();
+	const char* cur_anim = m_current_motion_def ? m_current_motion.c_str() : "";
+
+	if (READ_IF_EXISTS(pSettings, r_bool, hud_sect, "mix_shoot_after_idle", false) && (strstr(cur_anim, "anm_idle")))
+		return true;
+
+	if (READ_IF_EXISTS(pSettings, r_bool, hud_sect, "mix_shoot_after_reload", false) && (strstr(cur_anim, "anm_reload")))
+		return true;
+
+	if (READ_IF_EXISTS(pSettings, r_bool, hud_sect, "mix_shoot_after_shoot_in_queue", false) && (strstr(cur_anim, "anm_shoot")))
+		return true;
+	
+	return false;
+}
+
 void CWeaponMagazined::PlayAnimShoot()
 {
     string128 guns_shoot_anm;
     xr_strconcat(guns_shoot_anm, "anm_shoot", (IsZoomed() && !IsRotatingToZoom()) ? (IsScopeAttached() ? "_aim_scope" : "_aim") : "", GetFireModeMask(), iAmmoElapsed == 1 ? "_last" : "",
                  IsSilencerAttached() ? "_sil" : "");
 
-    PlayHUDMotion({guns_shoot_anm, "anm_shoot", "anim_shoot", "anm_shots"}, true, GetState());
+    PlayHUDMotion({guns_shoot_anm, "anim_shoot", "anm_shots"}, NeedShootMix(), GetState());
 }
 
 void CWeaponMagazined::PlayAnimFakeShoot()

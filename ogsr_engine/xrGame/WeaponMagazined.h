@@ -115,6 +115,7 @@ public:
     virtual bool CanAttach(PIItem pIItem);
     virtual bool CanDetach(const char* item_section_name);
 	const bool CanAssignIdleAnimNow() const;
+	const bool NeedShootMix() const;
 
     virtual void InitAddons();
     virtual void InitZoomParams(LPCSTR section, bool useTexture);

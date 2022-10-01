@@ -8,12 +8,11 @@ CAdvancedDetector::CAdvancedDetector() { m_artefacts.m_af_rank = 2; }
 
 void CAdvancedDetector::CreateUI()
 {
-    R_ASSERT(!m_ui);
     m_ui = xr_new<CUIArtefactDetectorAdv>();
     ui().construct(this);
 }
 
-CUIArtefactDetectorAdv& CAdvancedDetector::ui() { return *((CUIArtefactDetectorAdv*)m_ui); }
+CUIArtefactDetectorAdv& CAdvancedDetector::ui() { if(!m_ui) CreateUI(); return *smart_cast<CUIArtefactDetectorAdv*>(m_ui); }
 void CAdvancedDetector::UpdateAf()
 {
     ui().SetValue(0.0f, Fvector{});

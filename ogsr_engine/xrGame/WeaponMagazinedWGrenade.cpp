@@ -783,14 +783,14 @@ void CWeaponMagazinedWGrenade::PlayAnimShoot()
         //анимация стрельбы из подствольника
         string128 guns_shoot_anm;
         xr_strconcat(guns_shoot_anm, "anm_shoot", (IsZoomed() && !IsRotatingToZoom()) ? "_aim" : "", GetFireModeMask(), IsMisfire() ? "_jammed" : (iAmmoElapsed2 == 0 ? "_empty" : ""), "_g");
-        PlayHUDMotion({guns_shoot_anm, "anm_shoot", "anm_shoot_g", "anm_shots_g"}, used_cop_fire_point(), GetState());
+        PlayHUDMotion({guns_shoot_anm, "anm_shoot_g", "anm_shots_g"}, NeedShootMix() && used_cop_fire_point(), GetState());
     }
     else if (IsGrenadeLauncherAttached())
     {
         string128 guns_shoot_anm;
         xr_strconcat(guns_shoot_anm, "anm_shoot", (IsZoomed() && !IsRotatingToZoom()) ? (IsScopeAttached() ? "_aim_scope" : "_aim") : "", GetFireModeMask(),
                      iAmmoElapsed == 1 ? "_last" : "", IsSilencerAttached() ? "_sil" : "", "_w_gl");
-        PlayHUDMotion({guns_shoot_anm, "anm_shoot_w_gl", "anim_shoot_gl", "anm_shots_w_gl"}, used_cop_fire_point(), GetState());
+        PlayHUDMotion({guns_shoot_anm, "anim_shoot_gl", "anm_shots_w_gl"}, NeedShootMix() && used_cop_fire_point(), GetState());
     }
     else
         inherited::PlayAnimShoot();
