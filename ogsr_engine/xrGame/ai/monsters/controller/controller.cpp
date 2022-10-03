@@ -562,7 +562,7 @@ bool CController::can_tube_fire()
         return false;
     }
 
-    if (!EnemyMan.get_enemy())
+    if (!EnemyMan.get_enemy() || smart_cast<const CActor*>(EnemyMan.get_enemy()))
         return false;
 
     if (EnemyMan.see_enemy_duration() < m_tube_condition_see_duration)

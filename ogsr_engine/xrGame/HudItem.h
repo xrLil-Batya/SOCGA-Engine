@@ -42,6 +42,8 @@ public:
 		eKnifeKick,
 		ePrevFireMode,
 		eNextFireMode,
+		eSuicideStart,
+		eSuicideStop,
 		eSecondHandAction,
     };
 

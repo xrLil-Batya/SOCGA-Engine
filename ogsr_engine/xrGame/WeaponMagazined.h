@@ -1,9 +1,6 @@
 #pragma once
 
 #include "weapon.h"
-#include "hudsound.h"
-#include "ai_sounds.h"
-
 class ENGINE_API CMotionDef;
 
 //размер очереди считается бесконечность
@@ -66,6 +63,8 @@ protected:
 	virtual void switch2_KnifeKick();
 	virtual void switch2_PrevFireMode();
 	virtual void switch2_NextFireMode();
+    virtual void switch2_suicide_start() override;
+    virtual void switch2_suicide_stop() override;
 	virtual void KnifeKick_Timer();
 
     virtual void OnShot();

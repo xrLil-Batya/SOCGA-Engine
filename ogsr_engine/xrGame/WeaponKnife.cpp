@@ -179,6 +179,9 @@ void CWeaponKnife::OnAnimationEnd(u32 state)
     case eHiding: SwitchState(eHidden); break;
     case eFire:
     case eFire2: {
+        if(const auto actor = smart_cast<CActor*>(H_Parent()); actor && bSuicide)
+            actor->Die(this);
+
         u32 time = 0;
         if (m_attackStart)
         {
@@ -220,14 +223,16 @@ void CWeaponKnife::switch2_Attacking(u32 state)
     if (IsPending())
         return;
 
-    if (state == eFire)
+	if(bSuicide)
+		PlayHUDMotion({"anm_selfkill"}, false, state);
+    else if (state == eFire)
         PlayHUDMotion({"anim_shoot1_start", "anm_attack"}, false, state);
     else // eFire2
         PlayHUDMotion({"anim_shoot2_start", "anm_attack2"}, false, state);
 
     m_attackMotionMarksAvailable = !m_current_motion_def->marks.empty();
     m_attackStart = true;
-    SetPending(TRUE);
+    SetPending(true);
 }
 
 void CWeaponKnife::switch2_Idle()
@@ -252,7 +257,31 @@ void CWeaponKnife::switch2_Hidden()
 void CWeaponKnife::switch2_Showing()
 {
     VERIFY(GetState() == eShowing);
-    PlayHUDMotion({"anim_draw", "anm_show"}, false, GetState());
+	
+	if(const auto actor = smart_cast<CActor*>(H_Parent()); actor && actor->PsyAuraAffect)
+		PlayHUDMotion({"anm_show_suicide", "anim_draw", "anm_show"}, false, GetState());
+	else
+		PlayHUDMotion({"anim_draw", "anm_show"}, false, GetState());
+}
+
+void CWeaponKnife::switch2_suicide_start()
+{
+    SetPending(true);
+    string_path guns_anm_suicide{};
+
+    xr_strconcat(guns_anm_suicide, "anm_prepare_suicide");
+    PlayHUDMotion(guns_anm_suicide, true, GetState());
+    PlaySound(snd_suicide, Position());
+}
+
+void CWeaponKnife::switch2_suicide_stop()
+{
+    SetPending(true);
+    string_path guns_anm_suicide_stop{};
+
+    xr_strconcat(guns_anm_suicide_stop, "anm_stop_suicide");
+    PlayHUDMotion(guns_anm_suicide_stop, true, GetState());
+    PlaySound(snd_stop_suicide, Position());
 }
 
 void CWeaponKnife::FireStart()

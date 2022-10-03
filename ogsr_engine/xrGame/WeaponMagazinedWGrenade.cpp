@@ -789,7 +789,7 @@ void CWeaponMagazinedWGrenade::PlayAnimShoot()
     {
         string128 guns_shoot_anm;
         xr_strconcat(guns_shoot_anm, "anm_shoot", (IsZoomed() && !IsRotatingToZoom()) ? (IsScopeAttached() ? "_aim_scope" : "_aim") : "", GetFireModeMask(),
-                     iAmmoElapsed == 1 ? "_last" : "", IsSilencerAttached() ? "_sil" : "", "_w_gl");
+                     iAmmoElapsed == 1 ? "_last" : "", bSuicide ? "_suicide" : "", IsSilencerAttached() ? "_sil" : "", "_w_gl");
         PlayHUDMotion({guns_shoot_anm, "anim_shoot_gl", "anm_shots_w_gl"}, NeedShootMix() && used_cop_fire_point(), GetState());
     }
     else

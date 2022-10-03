@@ -32,7 +32,7 @@
 //
 #include "Actor.h"
 #include "actor_anim_defs.h"
-#include "HudItem.h"
+#include "WeaponBinoculars.h"
 #include "ai_sounds.h"
 #include "ai_space.h"
 #include "trade.h"
@@ -793,6 +793,9 @@ float CActor::currentFOV()
 
 void CActor::UpdateCL()
 {
+    if(PsyAuraAffect && (!smart_cast<CWeapon*>(inventory().ActiveItem()) || smart_cast<CWeaponBinoculars*>(inventory().ActiveItem())))
+        inventory().Action(kWPN_1, CMD_START);
+
     if (m_feel_touch_characters > 0)
     {
         for (xr_vector<CObject*>::iterator it = feel_touch.begin(); it != feel_touch.end(); it++)

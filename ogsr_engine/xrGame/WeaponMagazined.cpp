@@ -68,7 +68,7 @@ CWeaponMagazined::~CWeaponMagazined()
     HUD_SOUND::DestroySound(sndItemOn);
     HUD_SOUND::DestroySound(sndAimStart);
     HUD_SOUND::DestroySound(sndAimEnd);
-	HUD_SOUND::DestroySound(sndKnifeKick);
+    HUD_SOUND::DestroySound(sndKnifeKick);
     if (m_binoc_vision)
         xr_delete(m_binoc_vision);
 }
@@ -779,6 +779,9 @@ void CWeaponMagazined::OnShot()
     //дым из ствола
     ForceUpdateFireParticles();
     StartSmokeParticles(get_LastFP(), vel);
+
+    if(const auto actor = smart_cast<CActor*>(H_Parent()); actor && bSuicide)
+        actor->Die(this);
 }
 
 void CWeaponMagazined::OnEmptyClick()
@@ -1429,12 +1432,8 @@ void CWeaponMagazined::ApplySilencerKoeffs()
 
 const bool CWeaponMagazined::CanAssignIdleAnimNow() const
 {
-	const std::string anm_shoot = "anm_shoot";
 	const bool AllowIdleAnimWhileShooting = READ_IF_EXISTS(pSettings, r_bool, HudSection().c_str(), "cyclic_shoot_animations", false);
-
-	return (m_current_motion_def == nullptr) || 
-		(std::string(m_current_motion.c_str()).substr(0, anm_shoot.length()) != anm_shoot) ||
-		AllowIdleAnimWhileShooting;
+	return (m_current_motion_def == nullptr || !strstr(m_current_motion.c_str(), "anm_shoot") || AllowIdleAnimWhileShooting);
 }
 
 //виртуальные функции для проигрывания анимации HUD
@@ -1573,7 +1572,7 @@ const bool CWeaponMagazined::NeedShootMix() const
 void CWeaponMagazined::PlayAnimShoot()
 {
     string128 guns_shoot_anm;
-    xr_strconcat(guns_shoot_anm, "anm_shoot", (IsZoomed() && !IsRotatingToZoom()) ? (IsScopeAttached() ? "_aim_scope" : "_aim") : "", GetFireModeMask(), iAmmoElapsed == 1 ? "_last" : "",
+    xr_strconcat(guns_shoot_anm, "anm_shoot", (IsZoomed() && !IsRotatingToZoom()) ? (IsScopeAttached() ? "_aim_scope" : "_aim") : "", GetFireModeMask(), iAmmoElapsed == 1 ? "_last" : "", bSuicide ? "_suicide" : "",
                  IsSilencerAttached() ? "_sil" : "");
 
     PlayHUDMotion({guns_shoot_anm, "anim_shoot", "anm_shots"}, NeedShootMix(), GetState());
@@ -1674,6 +1673,29 @@ void CWeaponMagazined::OnZoomOut()
 }
 
 void CWeaponMagazined::OnZoomChanged() { PlaySound(sndZoomChange, get_LastFP()); }
+
+void CWeaponMagazined::switch2_suicide_start()
+{
+    SetPending(true);
+    string_path guns_anm_suicide{};
+
+    xr_strconcat(guns_anm_suicide, "anm_suicide", GetFireModeMask(), (IsGrenadeMode() ? GetAmmoElapsed2() : iAmmoElapsed) == 0 ? "_empty" : (IsMisfire() ? "_jammed" : ""),
+                 IsGrenadeLauncherAttached() ? (IsGrenadeMode() ? "_g" : "_w_gl") : "");
+    PlayHUDMotion(guns_anm_suicide, true, GetState());
+    PlaySound(snd_suicide, Position());
+}
+
+void CWeaponMagazined::switch2_suicide_stop()
+{
+    SetPending(true);
+    string_path guns_anm_suicide_stop{};
+
+    xr_strconcat(guns_anm_suicide_stop, "anm_stop_suicide", GetFireModeMask(),
+                 (IsGrenadeMode() ? GetAmmoElapsed2() : iAmmoElapsed) == 0 ? "_empty" : (IsMisfire() ? "_jammed" : ""),
+                 IsGrenadeLauncherAttached() ? (IsGrenadeMode() ? "_g" : "_w_gl") : "");
+    PlayHUDMotion(guns_anm_suicide_stop, true, GetState());
+    PlaySound(snd_stop_suicide, Position());
+}
 
 //переключение режимов стрельбы одиночными и очередями
 bool CWeaponMagazined::SwitchMode()

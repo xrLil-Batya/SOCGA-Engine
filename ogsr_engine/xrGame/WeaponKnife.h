@@ -6,7 +6,7 @@
 class CWeaponKnife : public CWeapon
 {
 private:
-    typedef CWeapon inherited;
+    using inherited = CWeapon;
 
 protected:
     HUD_SOUND m_sndShot;
@@ -23,6 +23,8 @@ protected:
     virtual void switch2_Hidden();
     virtual void switch2_Showing();
     void switch2_Attacking(u32 state);
+    virtual void switch2_suicide_start() override;
+    virtual void switch2_suicide_stop() override;
 
     virtual void OnMotionMark(u32 state, const motion_marks& M);
     virtual void OnAnimationEnd(u32 state);

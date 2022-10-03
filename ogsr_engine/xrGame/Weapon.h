@@ -13,6 +13,8 @@
 #include "xrServer_Objects_ALife_Items.h"
 #include "actor.h"
 #include "firedeps.h"
+#include "hudsound.h"
+#include "ai_sounds.h"
 
 // refs
 class CEntity;
@@ -31,7 +33,7 @@ class CWeapon : public CHudItemObject, public CShootingObject
     friend class CWeaponScript;
 
 private:
-    typedef CHudItemObject inherited;
+    using inherited = CHudItemObject;
 
 public:
     CWeapon(LPCSTR name);
@@ -137,12 +139,19 @@ protected:
     u8 m_sub_state;
     u8 m_idle_state;
     // Weapon fires now
-    bool bWorking2;
+    bool bWorking2{}, bSuicide{};
+
+    virtual void OnStateSwitch(u32 S, u32 oldState) override;
+    virtual void switch2_suicide_start() {};
+    virtual void switch2_suicide_stop() {};
 
     //////////////////////////////////////////////////////////////////////////
     //  Weapon Addons
     //////////////////////////////////////////////////////////////////////////
+
+	HUD_SOUND snd_suicide{}, snd_stop_suicide{};
 public:
+    virtual void OnAnimationEnd(u32 state) override;
     ///////////////////////////////////////////
     // работа с аддонами к оружию
     //////////////////////////////////////////

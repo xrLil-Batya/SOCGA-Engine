@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 #include "stdafx.h"
 
+#include "WeaponKnife.h"
 #include "WeaponMagazinedWGrenade.h"
 #include "ParticlesObject.h"
 #include "entity_alive.h"
@@ -84,6 +85,8 @@ CWeapon::CWeapon(LPCSTR name)
 CWeapon::~CWeapon()
 {
     xr_delete(m_UIScope);
+    HUD_SOUND::DestroySound(snd_suicide);
+    HUD_SOUND::DestroySound(snd_stop_suicide);
 
     laser_light_render.destroy();
     flashlight_render.destroy();
@@ -600,6 +603,9 @@ void CWeapon::Load(LPCSTR section)
         flashlight_glow->set_color(clr);
         flashlight_glow->set_radius(READ_IF_EXISTS(pSettings, r_float, m_light_section, "glow_radius", 0.3f));
     }
+
+    HUD_SOUND::LoadSound("socga_base_sounds", "snd_suicide", snd_suicide, SOUND_TYPE_ITEM_USING);
+    HUD_SOUND::LoadSound("socga_base_sounds", "snd_stop_suicide", snd_stop_suicide, SOUND_TYPE_ITEM_USING);
 }
 
 void CWeapon::LoadFireParams(LPCSTR section, LPCSTR prefix)
@@ -920,6 +926,47 @@ void CWeapon::UpdateCL()
 
 	ProcessAmmo();
 	ProcessAmmoGL();
+
+    if(const auto actor = smart_cast<CActor*>(H_Parent()))
+    {
+        if(actor->PsyAuraAffect && GetState() != eSuicideStart && GetState() != eSuicideStop && GetState() != eFire && GetState() != eShowing && GetState() != eHiding && GetState() != eHidden)
+        {
+            if((IsPending() || !iAmmoElapsed || !(AnimationExist("anm_suicide") || AnimationExist("anm_prepare_suicide")) || IsGrenadeLauncherAttached()) && !smart_cast<CWeaponKnife*>(this))
+                actor->inventory().Action(kWPN_1, CMD_START);
+            else
+                SwitchState(eSuicideStart);
+        }
+    }
+}
+
+void CWeapon::OnStateSwitch(u32 S, u32 oldState)
+{
+    inherited::OnStateSwitch(S, oldState);
+    if(S == eSuicideStart)
+        switch2_suicide_start();
+    else if(S == eSuicideStop)
+        switch2_suicide_stop();
+}
+
+void CWeapon::OnAnimationEnd(u32 state)
+{
+    switch(state)
+    {
+        case eSuicideStart:
+            if(const auto actor = smart_cast<CActor*>(H_Parent()); actor && actor->PsyAuraAffect)
+            {
+                bSuicide = true;
+                SetPending(false);
+                SwitchState(eFire);
+            }
+            else
+                SwitchState(eSuicideStop);
+            break;
+        case eSuicideStop:
+            SwitchState(eIdle);
+            break;
+        default: inherited::OnAnimationEnd(state); break;
+    }
 }
 
 void CWeapon::UpdateLaser()
