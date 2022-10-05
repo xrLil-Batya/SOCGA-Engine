@@ -2310,7 +2310,7 @@ void CWeapon::ProcessAmmoAdv(const bool forced)
 			
 			if(m_current_motion_def)
 			{
-				const float _time = READ_IF_EXISTS(pSettings, r_float, hud_sect, (std::string("lock_time_end_") + GetCurrentMotion()).c_str(), 0) * 1000.f;
+				const float _time = READ_IF_EXISTS(pSettings, r_float, hud_sect, (std::string("lock_time_start_") + GetCurrentMotion()).c_str(), 0) * 1000.f;
 				const float current_time = Device.dwTimeGlobal - m_dwMotionStartTm;
 				if (_time && current_time >= _time) {
 					if(m_set_next_ammoType_on_reload != u32(-1)) {		

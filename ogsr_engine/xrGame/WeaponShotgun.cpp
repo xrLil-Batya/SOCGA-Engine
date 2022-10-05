@@ -315,11 +315,7 @@ void CWeaponShotgun::OnAnimationEnd(u32 state)
 
     case eSubstateReloadEnd: {
         if (IsMisfire())
-        {
             SwitchMisfire(false);
-            if (GetAmmoElapsed() > 0) // xrKrodin: хз, надо ли удалять заклинивший патрон в данном случае. Надо подумать над этим.
-                SetAmmoElapsed(GetAmmoElapsed() - 1);
-        }
         m_sub_state = eSubstateReloadBegin;
         SwitchState(eIdle);
     }
@@ -415,7 +411,7 @@ void CWeaponShotgun::switch2_AddCartgidge()
 			return;
 		}
 	}
-    PlayHUDMotion({iAmmoElapsed == 0 ? "anm_add_cartridge_empty" : "nullptr", "anim_add_cartridge", "anm_add_cartridge"}, true, GetState());
+    PlayHUDMotion({iAmmoElapsed == 0 ? "anm_add_cartridge_empty" : (IsMisfire() ? "anm_reload_jammed" : "nullptr"), "anim_add_cartridge", "anm_add_cartridge"}, true, GetState());
 }
 
 void CWeaponShotgun::switch2_EndReload()

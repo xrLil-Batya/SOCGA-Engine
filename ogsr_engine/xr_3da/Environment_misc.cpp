@@ -20,6 +20,8 @@ void CEnvModifier::load(IReader* fs, u32 version)
     far_plane = fs->r_float();
     fs->r_fvector3(fog_color);
     fog_density = fs->r_float();
+    lowland_fog_height = fs->r_float();
+    lowland_fog_density = fs->r_float();
     fs->r_fvector3(ambient);
     fs->r_fvector3(sky_color);
     fs->r_fvector3(hemi_color);
@@ -248,6 +250,8 @@ CEnvDescriptor::CEnvDescriptor(shared_str const& identifier) : m_identifier(iden
     fog_color.set(1, 1, 1);
     fog_density = 0.0f;
     fog_distance = 400.0f;
+    lowland_fog_height = -50.0f;
+    lowland_fog_density = 0.0f;
 
     rain_density = 0.0f;
     rain_color.set(0, 0, 0);
@@ -345,6 +349,12 @@ void CEnvDescriptor::load(CEnvironment& environment, CInifile& config)
     constexpr float def_min_TAI = 0.01f, def_max_TAI = 0.07f;
     const float def_TAI = def_min_TAI + (rain_density * (def_max_TAI - def_min_TAI)); //Если не прописано, дефолт будет рассчитываться от силы дождя.
     m_fTreeAmplitudeIntensity = READ_IF_EXISTS(reinterpret_cast<CInifile*>(&config), r_float, m_identifier.c_str(), "tree_amplitude_intensity", def_TAI);
+
+    if (config.line_exist(m_identifier.c_str(), "lowland_fog_height"))
+        lowland_fog_height	= config.r_float(m_identifier.c_str(), "lowland_fog_height");
+
+    if (config.line_exist(m_identifier.c_str(), "lowland_fog_density"))
+        lowland_fog_density = config.r_float(m_identifier.c_str(), "lowland_fog_density");
 
     C_CHECK(clouds_color);
     C_CHECK(sky_color);
@@ -508,6 +518,9 @@ void CEnvDescriptorMixer::lerp(CEnvironment*, CEnvDescriptor& A, CEnvDescriptor&
 
     m_fWaterIntensity = fi * A.m_fWaterIntensity + f * B.m_fWaterIntensity;
     m_fTreeAmplitudeIntensity = fi * A.m_fTreeAmplitudeIntensity + f * B.m_fTreeAmplitudeIntensity;
+
+    lowland_fog_height	= fi*A.lowland_fog_height + f * B.lowland_fog_height;
+    lowland_fog_density = fi * A.lowland_fog_density + f * B.lowland_fog_density;
 
     // colors
     //.	sky_color.lerp			(A.sky_color,B.sky_color,f).add(Mdf.sky_color).mul(modif_power);
