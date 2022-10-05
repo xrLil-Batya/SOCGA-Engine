@@ -59,14 +59,6 @@ void CRender::level_Load(IReader* fs)
 
     if (!g_dedicated_server)
     {
-        string_path ltx_path{};
-        FS.update_path(ltx_path, "$level$", "level.ltx");
-        auto level_ltx = xr_new<CInifile>(ltx_path, true, true, false);
-
-        float extern ENGINE_API LowlandFogBaseHeight;
-        LowlandFogBaseHeight = READ_IF_EXISTS(level_ltx, r_float, "level_map", "lowland_fog_params", 0.f);
-        xr_delete(level_ltx);
-
         // VB,IB,SWI
         g_pGamePersistent->LoadTitle("st_loading_geometry");
         {

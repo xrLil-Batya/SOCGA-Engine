@@ -10,18 +10,16 @@ int psSkeletonUpdate = 32;
 
 u16 CKinematics::LL_BoneID(const char* B) const
 {
-    if (const auto I = bone_map_N.find(B); I != bone_map_N.end())
-        return I->second;
+    if(&bone_map_N)
+        if (const auto I = bone_map_N.find(B); I != bone_map_N.end())
+            return I->second;
 
     return BI_NONE;
 }
 
 u16 CKinematics::LL_BoneID(const shared_str& B) const
 {
-    if (const auto I = bone_map_N.find(B); I != bone_map_N.end())
-        return I->second;
-
-    return BI_NONE;
+    return LL_BoneID(*B);
 }
 
 const char* CKinematics::LL_BoneName_dbg(const u16 ID) const

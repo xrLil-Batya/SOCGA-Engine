@@ -155,20 +155,6 @@ static class cl_fog_color final : public R_constant_setup
     }
 } binder_fog_color;
 
-//Lowland fog params
-static class cl_lowland_fog_params : public R_constant_setup
-{
-    virtual void setup(R_constant* C)
-    {
-        CEnvDescriptor&	desc = *g_pGamePersistent->Environment().CurrentEnv;
-        const float low_fog_height = desc.lowland_fog_height;
-        const float low_fog_density = desc.lowland_fog_density;
-
-        float extern ENGINE_API LowlandFogBaseHeight;
-        RCache.set_c(C, low_fog_height, low_fog_density, LowlandFogBaseHeight, 0.f);
-    }
-} binder_lowland_fog_params;
-
 // times
 static class cl_times final : public R_constant_setup
 {
@@ -460,7 +446,6 @@ void CBlender_Compile::SetMapping()
     r_Constant("fog_plane", &binder_fog_plane);
     r_Constant("fog_params", &binder_fog_params);
     r_Constant("fog_color", &binder_fog_color);
-	r_Constant("lowland_fog_params", &binder_lowland_fog_params);
 
     // Rain
     r_Constant("rain_params", &binder_rain_params);

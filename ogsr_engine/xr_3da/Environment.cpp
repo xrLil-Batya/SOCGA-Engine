@@ -33,7 +33,6 @@
 //////////////////////////////////////////////////////////////////////
 ENGINE_API float psVisDistance = 1.f;
 static const float MAX_NOISE_FREQ = 0.03f;
-float ENGINE_API LowlandFogBaseHeight{};
 
 //#define WEATHER_LOGGING
 
@@ -452,8 +451,6 @@ void CEnvironment::lerp(float& current_weight)
     EM.far_plane = 0;
     EM.fog_color.set(0, 0, 0);
     EM.fog_density = 0;
-    EM.lowland_fog_height = 0;
-    EM.lowland_fog_density = 0;
     EM.ambient.set(0, 0, 0);
     EM.sky_color.set(0, 0, 0);
     EM.hemi_color.set(0, 0, 0);

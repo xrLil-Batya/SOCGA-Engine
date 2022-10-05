@@ -481,8 +481,13 @@ bool CInventory::Activate(u32 slot, EActivationReason reason, bool bForce, bool 
     //активный слот не выбран
     if (m_iActiveSlot == NO_ACTIVE_SLOT)
     {
-        if (m_slots[slot].m_pIItem)
+        if (m_slots[slot].m_pIItem || slot == BACKPACK_SLOT)
         {
+			if(!m_slots[slot].m_pIItem && slot == BACKPACK_SLOT)
+			{
+                Level().spawn_item("dev_rucksack", Actor()->Position(), false, Actor()->ID());
+			}
+
             m_iNextActiveSlot = slot;
             m_ActivationSlotReason = reason;
             res = true;
@@ -512,8 +517,13 @@ bool CInventory::Activate(u32 slot, EActivationReason reason, bool bForce, bool 
         }
     }
     //активный слот задействован
-    else if (slot == NO_ACTIVE_SLOT || m_slots[slot].m_pIItem)
+    else if (slot == NO_ACTIVE_SLOT || m_slots[slot].m_pIItem || slot == BACKPACK_SLOT)
     {
+        if (!m_slots[slot].m_pIItem && slot == BACKPACK_SLOT)
+        {
+            Level().spawn_item("dev_rucksack", Actor()->Position(), false, Actor()->ID());
+        }
+
         if (m_slots[m_iActiveSlot].m_pIItem)
         {
             m_slots[m_iActiveSlot].m_pIItem->Deactivate(now || (slot != NO_ACTIVE_SLOT && m_slots[slot].maySwitchFast()));

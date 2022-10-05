@@ -53,12 +53,12 @@ CUIInventoryWnd::CUIInventoryWnd() :
 
 	if(Actor())
 		Actor()->inventory().m_slots[BACKPACK_SLOT].m_pIItem = this;
-	
+
 	SetState(eHidden);
 	SetNextState(eHidden);
 	m_flags.set					(FIHiddenForInventory | FIAlwaysUntradable, true);
 	m_flags.set					(FCanTake | FCanTrade | Fuseful_for_NPC, false);
-	
+
 	Hide								();	
 }
 
@@ -355,7 +355,6 @@ void CUIInventoryWnd::Show()
 
 void CUIInventoryWnd::Hide()
 {
-	PlaySnd								(eInvSndClose);
 	inherited::Hide						();
 
 	SendInfoToActor						("ui_inventory_hide");
@@ -668,7 +667,7 @@ void CUIInventoryWnd::OnStateSwitch(u32 S, u32 oldState)
 			Hide();
 
 			PlayHUDMotion("anm_hide", true, eHiding);
-
+			PlaySnd(eInvSndClose);
 			SetPending(true);
 		}
 	}

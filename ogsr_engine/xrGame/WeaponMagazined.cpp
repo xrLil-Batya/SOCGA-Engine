@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "hudmanager.h"
 #include "WeaponMagazinedWGrenade.h"
+#include "WeaponShotgun.h"
 #include "entity.h"
 #include "actor.h"
 #include "torch.h"
@@ -208,7 +209,7 @@ void CWeaponMagazined::Load(LPCSTR section)
 
     m_str_count_tmpl = READ_IF_EXISTS(pSettings, r_string, "features", "wpn_magazined_str_count_tmpl", "{AE}/{AC}");
 
-    CartridgeInTheChamberEnabled = READ_IF_EXISTS(pSettings, r_bool, section, "CartridgeInTheChamberEnabled", false);
+    CartridgeInTheChamberEnabled = READ_IF_EXISTS(pSettings, r_bool, section, "CartridgeInTheChamberEnabled", !smart_cast<CWeaponShotgun*>(this));
 	has_no_kick_anim = READ_IF_EXISTS(pSettings, r_bool, section, "disable_kick_anim", true);
 }
 
