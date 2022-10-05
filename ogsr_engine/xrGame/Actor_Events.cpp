@@ -55,7 +55,7 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
         {
             _GO->H_SetParent(this);
 
-			const bool use_pickup_anim = (type == GE_OWNERSHIP_TAKE) && (Position().distance_to(_GO->Position()) > 0.2f);
+			const bool use_pickup_anim = type == GE_OWNERSHIP_TAKE;
             inventory().Take(_GO, false, true, use_pickup_anim);
 
             CUIGameSP* pGameSP{};

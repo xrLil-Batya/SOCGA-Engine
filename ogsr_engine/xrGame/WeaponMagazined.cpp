@@ -842,7 +842,7 @@ void CWeaponMagazined::KnifeKick_Timer()
 	if(GetState() != eKnifeKick) return;
 
 	const char* hud_sect = HudSection().c_str();
-	const float _time = READ_IF_EXISTS(pSettings, r_float, hud_sect, (std::string("lock_time_end_") + std::string(m_current_motion.c_str())).c_str(), 0) * 1000.f;
+	const float _time = READ_IF_EXISTS(pSettings, r_float, hud_sect, (std::string("lock_time_start_") + std::string(m_current_motion.c_str())).c_str(), 0) * 1000.f;
 	const float current_time = Device.dwTimeGlobal - m_dwMotionStartTm;
 
 	if (_time && current_time >= _time && m_kick)
