@@ -1,0 +1,5 @@
+#pragma once
+
+#define M_TABLE_ITERATIONS 5813
+#define M_TABLE_SEED 84629057
+#define M_ENCRYPT_SEED 82957325
