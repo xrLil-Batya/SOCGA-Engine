@@ -3,16 +3,23 @@
 #include "ParticlesObject.h"
 #include "PhysicsShell.h"
 #include "xr_level_controller.h"
+#include "Actor.h"
+#include "ai_sounds.h"
 
 CBolt::CBolt(void)
 {
     m_weight = .1f;
     SetSlot(BOLT_SLOT);
-    m_flags.set(Fruck, FALSE);
+    m_flags.set(Fruck, false);
     m_thrower_id = u16(-1);
 }
 
 CBolt::~CBolt(void) {}
+
+void CBolt::Load(LPCSTR section) {
+    inherited::Load(section);
+    HUD_SOUND::LoadSound(section, "snd_throw", m_ThrowSnd, SOUND_TYPE_WEAPON_SHOOTING);
+}
 
 void CBolt::OnH_A_Chield()
 {
@@ -34,6 +41,8 @@ void CBolt::Deactivate(bool now) { Hide(now || (GetState() == eThrowStart || Get
 
 void CBolt::Throw()
 {
+    if(const auto actor = smart_cast<CActor*>(H_Parent()))
+        PlaySound(m_ThrowSnd, actor->Position());
     CMissile* l_pBolt = smart_cast<CMissile*>(m_fake_missile);
     if (!l_pBolt)
         return;
@@ -46,9 +55,7 @@ bool CBolt::Useful() const { return false; }
 
 bool CBolt::Action(s32 cmd, u32 flags)
 {
-    if (inherited::Action(cmd, flags))
-        return true;
-    return false;
+    return inherited::Action(cmd, flags);
 }
 
 void CBolt::Destroy() { inherited::Destroy(); }
