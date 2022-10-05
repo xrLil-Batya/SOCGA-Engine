@@ -6,6 +6,7 @@
 #include "EngineAPI.h"
 #include "xr_ioconsole.h"
 #include "xr_ioc_cmd.h"
+#include <filesystem>
 
 extern xr_token* vid_quality_token;
 
@@ -62,11 +63,16 @@ void xrFactory_Destroy(DLL_Pure* O);
 
 void CEngineAPI::Initialize()
 {
+    constexpr const char* xrEnginePDB = "SOCGA-Engine.pdb";
+    constexpr const char* LuaJitPDB = "LuaJIT.pdb";
+
+    CHECK_OR_EXIT(std::filesystem::exists(xrEnginePDB), "Cannot find file SOCGA-Engine.pdb in bin_x64!");
+    CHECK_OR_EXIT(std::filesystem::exists(LuaJitPDB), "Cannot find file LuaJIT.pdb in bin_x64!");
 #ifdef XRRENDER_STATIC
-    void AttachRender();
+    void extern AttachRender();
     AttachRender();
     g_current_renderer = 4;
-    psDeviceFlags.set(rsR4, TRUE);
+    psDeviceFlags.set(rsR4, true);
     Console->Execute("renderer renderer_r4");
 #else
 
