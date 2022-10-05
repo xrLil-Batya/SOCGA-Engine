@@ -244,7 +244,10 @@ void CWeaponMagazined::FireStart()
         }
     }
     else if (eReload != GetState() && eMisfire != GetState())
+	{
         OnMagazineEmpty();
+		HUD().GetUI()->AddInfoMessage("gun_empty");
+	}
 }
 
 void CWeaponMagazined::FireEnd()
