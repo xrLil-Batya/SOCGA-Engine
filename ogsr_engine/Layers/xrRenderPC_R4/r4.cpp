@@ -1465,7 +1465,6 @@ HRESULT CRender::shader_compile(LPCSTR name, DWORD const* pSrcData, UINT SrcData
     sh_name[len] = '0' + char(o.dx10_sm4_1);
     ++len;
 
-    R_ASSERT(HW.FeatureLevel >= D3D_FEATURE_LEVEL_11_0);
     if (HW.FeatureLevel >= D3D_FEATURE_LEVEL_11_0)
     {
         defines[def_it].Name = "SM_5";
