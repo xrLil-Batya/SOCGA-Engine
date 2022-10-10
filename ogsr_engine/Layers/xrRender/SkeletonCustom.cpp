@@ -472,6 +472,9 @@ void CKinematics::Release()
 
 void CKinematics::LL_SetBoneVisible(u16 bone_id, BOOL val, BOOL bRecursive)
 {
+    if(bone_id == BI_NONE)
+        return;
+
     R_ASSERT(bone_id < LL_BoneCount());
     visimask.set(bone_id, !!val);
     if (!visimask.is(bone_id))

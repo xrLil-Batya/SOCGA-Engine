@@ -33,11 +33,7 @@ void CParticlesObject::Init(LPCSTR p_name, IRender_Sector* S, BOOL bAutoRemove)
     }
     else
     {
-        if (bAutoRemove)
-        {
-            R_ASSERT3(!m_bAutoRemove, "Can't set auto-remove flag for looped particle system.", p_name);
-        }
-        else
+        if (!bAutoRemove)
         {
             m_iLifeTime = 0;
             m_bLooped = true;

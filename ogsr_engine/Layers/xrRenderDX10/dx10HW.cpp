@@ -120,7 +120,7 @@ void CHW::CreateDevice(HWND m_hWnd, bool move_window)
     R_CHK(createDevice(nullptr, 0));
 
     //На всякий случай
-    if (FeatureLevel >= D3D_FEATURE_LEVEL_11_0)
+    if (FeatureLevel >= D3D_FEATURE_LEVEL_12_0)
         ComputeShadersSupported = true;
     else
     {

@@ -280,6 +280,8 @@ public:
     void CorrectDirFromWorldToHud(Fvector& dir);
     float GetLastHudFov() const { return m_nearwall_last_hud_fov; }
 
+    inline const bool IsRotatingToZoom() const { return (m_fZoomRotationFactor < 1.f); }
+    inline const bool IsRotatingFromZoom() const { return m_fZoomRotationFactor > 0.f; }
 protected:
     enum CollisionWeaponType : size_t
     {

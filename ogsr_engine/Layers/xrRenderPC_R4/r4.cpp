@@ -603,7 +603,10 @@ IRenderVisual* CRender::model_CreateParticles(LPCSTR name)
     else
     {
         PS::CPGDef* SG = PSLibrary.FindPGD(name);
-        R_ASSERT3(SG, "Particle effect or group doesn't exist", name);
+        if(std::string(name) == "")
+            Msg("[%s] Something strange! Name of particle is empty!", __FUNCTION__);
+        else
+            R_ASSERT3(SG, "Particle effect or group doesn't exist", name);
         return Models->CreatePG(SG);
     }
 }

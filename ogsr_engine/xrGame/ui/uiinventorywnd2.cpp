@@ -277,12 +277,6 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 		return ToSlot(itm, false);
 	}
 
-	if (result && _slot == DETECTOR_SLOT)
-	{
-		if (auto det = smart_cast<CCustomDetector*>(iitem))
-			det->ToggleDetector(g_player_hud->attached_item(0));
-	}
-
 	return result;
 }
 

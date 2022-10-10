@@ -29,6 +29,7 @@
 #include "WeaponMagazined.h"
 #include "../xr_3da/xr_input.h"
 #include "CustomDetector.h"
+#include "Flashlight.h"
 #include "WeaponKnife.h"
 #include "Missile.h"
 #include "PDA.h"
@@ -140,8 +141,10 @@ void CActor::IR_OnKeyboardPress(int cmd)
     }
     break;
     case kWPN_8: {
-        if (auto det = smart_cast<CCustomDetector*>(inventory().ItemFromSlot(DETECTOR_SLOT)))
-            det->ToggleDetector(g_player_hud->attached_item(0) != nullptr);
+        if (const auto det = smart_cast<CCustomDetector*>(inventory().ItemFromSlot(DETECTOR_SLOT)))
+            det->ToggleDetector(g_player_hud->attached_item(0));
+        else if (const auto flashlight = smart_cast<CFlashlight*>(inventory().ItemFromSlot(DETECTOR_SLOT)))
+            flashlight->ToggleDevice(g_player_hud->attached_item(0));
     }
     break;
     case kUSE: ActorUse(); break;

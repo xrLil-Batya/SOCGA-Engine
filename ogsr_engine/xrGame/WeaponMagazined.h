@@ -14,7 +14,7 @@ class CWeaponMagazined : public CWeapon
     friend class CWeaponScript;
 
 private:
-    typedef CWeapon inherited;
+    using inherited = CWeapon;
 
 protected:
     // Media :: sounds
