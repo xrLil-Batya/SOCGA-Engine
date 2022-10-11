@@ -158,6 +158,7 @@ void CCustomOutfit::OnDropOrMoveToRuck()
             if (pTorch)
             {
                 pTorch->SwitchNightVision(false);
+                pTorch->Switch(false);
             }
             if (m_ActorVisual.size())
             {

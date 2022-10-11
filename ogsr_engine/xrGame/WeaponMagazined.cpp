@@ -29,6 +29,7 @@
 #include "../xr_3da/x_ray.h"
 #include "Level_Bullet_Manager.h"
 #include "../xr_3da/GameMtlLib.h"
+#include "script_game_object.h"
 
 constexpr const char* KNIFE_MATERIAL_NAME = "objects\\knife";
 CWeaponMagazined::CWeaponMagazined(LPCSTR name, ESoundTypes eSoundType) : CWeapon(name)
@@ -1097,7 +1098,7 @@ bool CWeaponMagazined::Action(s32 cmd, u32 flags)
     break;
     case kTORCH: {
         auto pActorTorch = Actor()->inventory().ItemFromSlot(TORCH_SLOT);
-        if ((flags & CMD_START) && pActorTorch && GetState() == eIdle)
+        if (Actor()->lua_game_object()->Actor_HasTorch() && (flags & CMD_START) && pActorTorch && GetState() == eIdle)
         {
             HeadLampSwitch = true;
             DeviceSwitch();
@@ -1106,9 +1107,8 @@ bool CWeaponMagazined::Action(s32 cmd, u32 flags)
     }
     break;
     case kNIGHT_VISION: {
-        const auto pCO = Actor()->GetOutfit();
         const auto pActorNv = Actor()->inventory().ItemFromSlot(IS_OGSR_GA ? NIGHT_VISION_SLOT : TORCH_SLOT);
-        if ((flags & CMD_START) && pCO && pCO->m_NightVisionSect.size() && pActorNv && GetState() == eIdle)
+        if (Actor()->lua_game_object()->Actor_HasPNV() && (flags & CMD_START) && pActorNv && GetState() == eIdle)
         {
             NightVisionSwitch = true;
             DeviceSwitch();

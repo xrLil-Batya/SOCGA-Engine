@@ -35,6 +35,7 @@
 #include "actorcondition.h"
 #include "actor_memory.h"
 #include "visual_memory_manager.h"
+#include "CustomOutfit.h"
 
 class CScriptBinderObject;
 
@@ -623,6 +624,32 @@ bool CScriptGameObject::addon_IsActorHideout() const
     }
 
     return actorInhideout;
+}
+
+bool CScriptGameObject::Actor_HasTorch() const
+{
+	auto pA = Actor();
+	if(!pA)
+		return false;
+
+	auto pCO = pA->GetOutfit();
+	if(!pCO)
+		return false;
+
+	return READ_IF_EXISTS(pSettings, r_bool, *pCO->cNameSect(), "has_torch", false);
+}
+
+bool CScriptGameObject::Actor_HasPNV() const
+{
+	auto pA = Actor();
+	if(!pA)
+		return false;
+
+	auto pCO = pA->GetOutfit();
+	if(!pCO)
+		return false;
+
+	return pCO->m_NightVisionSect.size();
 }
 
 float CScriptGameObject::GetActorJumpSpeed() const

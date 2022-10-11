@@ -17,6 +17,7 @@
 #include "../script_game_object.h"
 #include "../CustomDetector.h"
 #include "../player_hud.h"
+#include "Torch.h"
 
 CUICellItem* CUIInventoryWnd::CurrentItem()
 {
@@ -151,34 +152,35 @@ void CUIInventoryWnd::InitInventory()
 	CUICellItem* outfit					= (_outfit)?create_cell_item(_outfit):nullptr;
 	m_pUIOutfitList->SetItem			(outfit);
 
-	TIItemContainer::iterator it, it_e;
-	for(it=m_pInv->m_belt.begin(),it_e=m_pInv->m_belt.end(); it!=it_e; ++it) 
+	for (auto& it : m_pInv->m_belt)
 	{
-	  if ( !(*it)->m_flags.test( CInventoryItem::FIHiddenForInventory ) ) {
-	    CUICellItem* itm = create_cell_item( *it );
-	    m_pUIBeltList->SetItem( itm );
-	  }
+		if (!it->m_flags.test(CInventoryItem::FIHiddenForInventory))
+		{
+			CUICellItem* itm = create_cell_item(it);
+			m_pUIBeltList->SetItem(itm);
+		}
 	}
 
 	ruck_list		= m_pInv->m_ruck;
 	std::sort		(ruck_list.begin(),ruck_list.end(),InventoryUtilities::GreaterRoomInRuck);
 
-	int i=1;
-	for(it=ruck_list.begin(),it_e=ruck_list.end(); it!=it_e; ++it,++i) 
+	for(auto& it : ruck_list)
 	{
-	  if ( !(*it)->m_flags.test( CInventoryItem::FIHiddenForInventory ) ) {
-	    CUICellItem* itm = create_cell_item( *it );
-	    m_pUIBagList->SetItem( itm );
-	  }
+		if (!it->m_flags.test(CInventoryItem::FIHiddenForInventory))
+		{
+			CUICellItem* itm = create_cell_item(it);
+			m_pUIBagList->SetItem(itm);
+		}
 	}
 	//fake
 	_itm								= m_pInv->m_slots[GRENADE_SLOT].m_pIItem;
 	if(_itm)
 	{
-	  if ( !_itm->m_flags.test( CInventoryItem::FIHiddenForInventory ) ) {
-	    CUICellItem* itm = create_cell_item( _itm );
-	    m_pUIBagList->SetItem( itm );
-	  }
+		if (!_itm->m_flags.test(CInventoryItem::FIHiddenForInventory))
+		{
+			CUICellItem* itm = create_cell_item(_itm);
+			m_pUIBagList->SetItem(itm);
+		}
 	}
 
 	m_pUIBagList->SetScrollPos(bag_scroll);

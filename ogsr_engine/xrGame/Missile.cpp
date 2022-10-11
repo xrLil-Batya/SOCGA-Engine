@@ -15,6 +15,7 @@
 #include "characterphysicssupport.h"
 #include "inventory.h"
 #include "..\xr_3da\IGame_Persistent.h"
+#include "script_game_object.h"
 #ifdef DEBUG
 #include "phdebug.h"
 #endif
@@ -621,7 +622,7 @@ bool CMissile::Action(s32 cmd, u32 flags)
     break;
     case kTORCH: {
         auto pActorTorch = smart_cast<CActor*>(H_Parent())->inventory().ItemFromSlot(TORCH_SLOT);
-        if ((flags & CMD_START) && pActorTorch && GetState() == eIdle)
+        if (Actor()->lua_game_object()->Actor_HasTorch() && (flags & CMD_START) && pActorTorch && GetState() == eIdle)
         {
             HeadLampSwitch = true;
             SwitchState(eDeviceSwitch);
@@ -631,7 +632,7 @@ bool CMissile::Action(s32 cmd, u32 flags)
     break;
     case kNIGHT_VISION: {
         auto pActorNv = smart_cast<CActor*>(H_Parent())->inventory().ItemFromSlot(IS_OGSR_GA ? NIGHT_VISION_SLOT : TORCH_SLOT);
-        if ((flags & CMD_START) && pActorNv && GetState() == eIdle)
+        if (Actor()->lua_game_object()->Actor_HasPNV() && (flags & CMD_START) && pActorNv && GetState() == eIdle)
         {
             NightVisionSwitch = true;
             SwitchState(eDeviceSwitch);

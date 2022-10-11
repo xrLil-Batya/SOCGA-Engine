@@ -35,6 +35,7 @@
 #include "PDA.h"
 #include "ui/UIPDAWnd.h"
 #include "ui/uiinventorywnd.h"
+#include "script_game_object.h"
 
 bool g_bAutoClearCrouch = true;
 extern int g_bHudAdjustMode;
@@ -129,14 +130,14 @@ void CActor::IR_OnKeyboardPress(int cmd)
     case kNIGHT_VISION: {
         auto act_it = inventory().ActiveItem();
         auto pTorch = smart_cast<CTorch*>(inventory().ItemFromSlot(TORCH_SLOT));
-        if (pTorch && !smart_cast<CWeaponMagazined*>(act_it) && !smart_cast<CWeaponKnife*>(act_it) && !smart_cast<CMissile*>(act_it))
+        if (lua_game_object()->Actor_HasPNV() && pTorch && !smart_cast<CWeaponMagazined*>(act_it) && !smart_cast<CWeaponKnife*>(act_it) && !smart_cast<CMissile*>(act_it))
             pTorch->SwitchNightVision();
     }
     break;
     case kTORCH: {
         auto act_it = inventory().ActiveItem();
         auto pTorch = smart_cast<CTorch*>(inventory().ItemFromSlot(TORCH_SLOT));
-        if (pTorch && !smart_cast<CWeaponMagazined*>(act_it) && !smart_cast<CWeaponKnife*>(act_it) && !smart_cast<CMissile*>(act_it))
+        if (lua_game_object()->Actor_HasTorch() && pTorch && !smart_cast<CWeaponMagazined*>(act_it) && !smart_cast<CWeaponKnife*>(act_it) && !smart_cast<CMissile*>(act_it))
             pTorch->Switch();
     }
     break;

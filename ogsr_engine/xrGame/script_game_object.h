@@ -647,6 +647,8 @@ public:
     /**************************************************** added by Cribbledirge END ****************************************************/
 
     bool addon_IsActorHideout() const; // проверка что актор под каким либо укрытием
+    bool Actor_HasTorch() const;
+    bool Actor_HasPNV() const;
 
     // KD
     // functions for CInventoryOwner class

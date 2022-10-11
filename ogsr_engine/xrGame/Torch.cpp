@@ -103,17 +103,17 @@ void CTorch::SwitchNightVision(bool vision_on)
         return;
     }
 
-    auto* pA = smart_cast<CActor*>(H_Parent());
+    auto pA = smart_cast<CActor*>(H_Parent());
     if (!pA)
         return;
 
-    auto* pActorTorch = smart_cast<CTorch*>(pA->inventory().ItemFromSlot(TORCH_SLOT));
+    auto pActorTorch = smart_cast<CTorch*>(pA->inventory().ItemFromSlot(TORCH_SLOT));
     if (pActorTorch && pActorTorch != this)
         return;
 
     bool bPlaySoundFirstPerson = (pA == Level().CurrentViewEntity());
 
-    auto* pCO = pA->GetOutfit();
+    auto pCO = pA->GetOutfit();
     if (pCO && pCO->m_NightVisionSect.size())
     {
         const char* disabled_names = pSettings->r_string(cNameSect(), "disabled_maps");
@@ -176,7 +176,7 @@ void CTorch::UpdateSwitchNightVision()
     if (OnClient())
         return;
 
-    auto* pA = smart_cast<CActor*>(H_Parent());
+    auto pA = smart_cast<CActor*>(H_Parent());
     if (pA && m_bNightVisionOn && !pA->Cameras().GetPPEffector((EEffectorPPType)effNightvision))
         SwitchNightVision(true);
 }

@@ -13,9 +13,9 @@
 #include "game_object_space.h"
 #include "Level_Bullet_Manager.h"
 #include "../xr_3da/x_ray.h"
+#include "script_game_object.h"
 
-#define KNIFE_MATERIAL_NAME "objects\\knife"
-
+constexpr const char* KNIFE_MATERIAL_NAME = "objects\\knife";
 CWeaponKnife::CWeaponKnife() : CWeapon("KNIFE")
 {
     m_attackStart = false;
@@ -315,7 +315,7 @@ bool CWeaponKnife::Action(s32 cmd, u32 flags)
         return true;
     case kTORCH: {
         auto pActorTorch = smart_cast<CActor*>(H_Parent())->inventory().ItemFromSlot(TORCH_SLOT);
-        if ((flags & CMD_START) && pActorTorch && GetState() == eIdle)
+        if (Actor()->lua_game_object()->Actor_HasTorch() && (flags & CMD_START) && pActorTorch && GetState() == eIdle)
         {
             HeadLampSwitch = true;
             SwitchState(eDeviceSwitch);
@@ -325,7 +325,7 @@ bool CWeaponKnife::Action(s32 cmd, u32 flags)
     break;
     case kNIGHT_VISION: {
         auto pActorNv = smart_cast<CActor*>(H_Parent())->inventory().ItemFromSlot(IS_OGSR_GA ? NIGHT_VISION_SLOT : TORCH_SLOT);
-        if ((flags & CMD_START) && pActorNv && GetState() == eIdle)
+        if (Actor()->lua_game_object()->Actor_HasPNV() && (flags & CMD_START) && pActorNv && GetState() == eIdle)
         {
             NightVisionSwitch = true;
             SwitchState(eDeviceSwitch);
