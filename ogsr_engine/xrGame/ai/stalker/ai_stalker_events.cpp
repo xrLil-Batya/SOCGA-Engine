@@ -101,13 +101,36 @@ void CAI_Stalker::OnEvent(NET_Packet& P, u16 type)
 
 void CAI_Stalker::feel_touch_new(CObject* O)
 {
-    //	Msg					("FEEL_TOUCH::NEW : %s",*O->cName());
-    if (!brain().CStalkerPlanner::m_storage.property(StalkerDecisionSpace::eWorldPropertyItems))
+    auto& eu = brain().evaluators();
+
+    bool propertyItems = true;
+    bool propertyFoundItemToKill = true;
+
+    const auto ePropertyItems = eu.find(StalkerDecisionSpace::eWorldPropertyItems);
+
+    if (ePropertyItems != eu.end())
+    {
+        propertyItems = (*ePropertyItems).second->evaluate();
+    }
+
+    auto ePropertyFoundItemToKill = eu.find(StalkerDecisionSpace::eWorldPropertyFoundItemToKill);
+    auto ePropertyItemToKill = eu.find(StalkerDecisionSpace::eWorldPropertyItemToKill);
+
+    if (ePropertyFoundItemToKill != eu.end() && 
+        ePropertyItemToKill != eu.end())
+    {
+        propertyFoundItemToKill = (*ePropertyFoundItemToKill).second->evaluate() && !(*ePropertyItemToKill).second->evaluate();
+    }
+
+    if (!propertyItems && !propertyFoundItemToKill) // !(propertyFoundItemToKill && !propertyItemToKill)
         return;
+
     if (!g_Alive())
         return;
+
     if (Remote())
         return;
+
     if ((O->spatial.type | STYPE_VISIBLEFORAI) != O->spatial.type)
         return;
 
