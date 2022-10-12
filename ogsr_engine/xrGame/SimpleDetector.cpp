@@ -83,8 +83,8 @@ void CUIArtefactDetectorSimple::construct(CSimpleDetector* p)
 
 CUIArtefactDetectorSimple::~CUIArtefactDetectorSimple()
 {
-    m_flash_light.destroy();
-    m_on_off_light.destroy();
+    xr_delete(m_flash_light);
+    xr_delete(m_on_off_light);
 }
 
 void CUIArtefactDetectorSimple::Flash(bool bOn, float fRelPower)
@@ -104,7 +104,7 @@ void CUIArtefactDetectorSimple::Flash(bool bOn, float fRelPower)
         K->LL_SetBoneVisible(m_flash_bone, FALSE, TRUE);
         m_turn_off_flash_time = 0;
     }
-    if (bOn != m_flash_light->get_active())
+    if (m_flash_light && bOn != m_flash_light->get_active())
         m_flash_light->set_active(bOn);
 }
 

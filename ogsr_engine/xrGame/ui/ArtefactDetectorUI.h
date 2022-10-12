@@ -42,8 +42,8 @@ class CUIArtefactDetectorSimple : public CUIArtefactDetectorBase
     u16 m_on_off_bone;
     u32 m_turn_off_flash_time;
 
-    ref_light m_flash_light;
-    ref_light m_on_off_light;
+    IRender_Light* m_flash_light;
+    IRender_Light* m_on_off_light;
     CLAItem* m_pOnOfLAnim;
     CLAItem* m_pFlashLAnim;
     void setup_internals();
