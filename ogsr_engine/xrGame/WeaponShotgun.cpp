@@ -537,7 +537,7 @@ void CWeaponShotgun::TryReload()
     SwitchState(eIdle);
 }
 
-void CWeaponShotgun::ReloadMagazine()
+void CWeaponShotgun::ReloadMagazine(const bool ForAmmoChangeOnly)
 { //Используется только при отключенном tri_state_reload
     m_dwAmmoCurrentCalcFrame = 0;
 
@@ -548,6 +548,8 @@ void CWeaponShotgun::ReloadMagazine()
         if (!m_pCurrentInventory)
             return;
 
+        if(ForAmmoChangeOnly)
+            UnloadMagazine();
         u8 cnt = AddCartridge(1);
         while (cnt == 0)
             cnt = AddCartridge(1);

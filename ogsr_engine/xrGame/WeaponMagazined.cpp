@@ -369,7 +369,7 @@ void CWeaponMagazined::UnloadMagazine(bool spawn_ammo)
     }
 }
 
-void CWeaponMagazined::ReloadMagazine()
+void CWeaponMagazined::ReloadMagazine(const bool ForAmmoChangeOnly)
 {
     m_dwAmmoCurrentCalcFrame = 0;
 
@@ -430,7 +430,9 @@ void CWeaponMagazined::ReloadMagazine()
         return;
 
     //разрядить магазин, если загружаем патронами другого типа
-    if (Core.Features.test(xrCore::Feature::hard_ammo_reload))
+    if (ForAmmoChangeOnly)
+        UnloadMagazine();
+    else if (Core.Features.test(xrCore::Feature::hard_ammo_reload))
     {
         if (!m_bLockType && !m_magazine.empty())
             if ((ParentIsActor() && !unlimited_ammo()) || (!m_pAmmo || xr_strcmp(m_pAmmo->cNameSect(), *m_magazine.back().m_ammoSect)))
@@ -455,7 +457,7 @@ void CWeaponMagazined::ReloadMagazine()
                 break; //-V595
         }
         ++iAmmoElapsed;
-        l_cartridge.m_LocalAmmoType = u8(m_ammoType);
+        l_cartridge.m_LocalAmmoType = static_cast<u8>(m_ammoType);
         m_magazine.push_back(l_cartridge);
     }
 

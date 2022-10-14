@@ -8,14 +8,14 @@ void CWeaponBM16::Load(LPCSTR section)
     inherited::Load(section);
 
     HUD_SOUND::LoadSound(section, "snd_reload_1", m_sndReload1, m_eSoundReload);
+    if(pSettings->line_exist(section, "snd_changecartridgetype_only"))
+        HUD_SOUND::LoadSound(section, "snd_changecartridgetype_only", m_sndReloadAmmoChange2, m_eSoundReload);
+    if(pSettings->line_exist(section, "snd_reload_only_ammochange"))
+        HUD_SOUND::LoadSound(section, "snd_reload_only_ammochange", m_sndReloadAmmoChange, m_eSoundReload);
 }
 
 void CWeaponBM16::PlayReloadSound()
 {
-    if (m_magazine.size() == 1 || !HaveCartridgeInInventory(2))
-        PlaySound((IsMisfire() && !sndReloadJammed.sounds.empty()) ? sndReloadJammed : m_sndReload1, get_LastFP());
-    else
-        PlaySound((IsMisfire() && !sndReloadJammed.sounds.empty()) ? sndReloadJammed : sndReload, get_LastFP());
 }
 
 void CWeaponBM16::UpdateSounds()
@@ -79,10 +79,21 @@ void CWeaponBM16::PlayAnimHide()
 
 void CWeaponBM16::PlayAnimReload()
 {
+    string64 guns_anm_reload{};
+    xr_strconcat(guns_anm_reload, "anm_reload", IsMisfire() ? "_jammed" : (m_magazine.size() && m_set_next_ammoType_on_reload != u32(-1) && HaveCartridgeInInventory(iMagazineSize - m_magazine.size()) ? "_ammochange" : ""), m_magazine.size() == 1 || !HaveCartridgeInInventory(2) ? "_1" : "_2");
+    const bool play_snd_ammochange = !IsMisfire() && m_magazine.size() && m_set_next_ammoType_on_reload != u32(-1) && HaveCartridgeInInventory(iMagazineSize - m_magazine.size()) && AnimationExist(guns_anm_reload);
+
     if (m_magazine.size() == 1 || !HaveCartridgeInInventory(2))
-        PlayHUDMotion({IsMisfire() ? "anm_reload_jammed_1" : "nullptr", "anim_reload_1", "anm_reload_1"}, true, GetState());
+        PlayHUDMotion({guns_anm_reload, IsMisfire() ? "anm_reload_jammed_1" : "nullptr", "anim_reload_1", "anm_reload_1"}, true, GetState());
     else
-        PlayHUDMotion({IsMisfire() ? "anm_reload_jammed_2" : "nullptr", "anim_reload", "anm_reload_2"}, true, GetState());
+        PlayHUDMotion({guns_anm_reload, IsMisfire() ? "anm_reload_jammed_2" : "nullptr", "anim_reload", "anm_reload_2"}, true, GetState());
+
+    if(play_snd_ammochange)
+        PlaySound(m_magazine.size() == 1 ? m_sndReloadAmmoChange : m_sndReloadAmmoChange2, get_LastFP());
+    else if (m_magazine.size() == 1 || !HaveCartridgeInInventory(2))
+        PlaySound((IsMisfire() && !sndReloadJammed.sounds.empty()) ? sndReloadJammed : m_sndReload1, get_LastFP());
+    else
+        PlaySound((IsMisfire() && !sndReloadJammed.sounds.empty()) ? sndReloadJammed : sndReload, get_LastFP());
 }
 
 void CWeaponBM16::PlayAnimIdleMoving()

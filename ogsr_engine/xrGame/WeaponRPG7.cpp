@@ -72,9 +72,9 @@ void CWeaponRPG7::UnloadMagazine(bool spawn_ammo)
     UpdateMissileVisibility();
 }
 
-void CWeaponRPG7::ReloadMagazine()
+void CWeaponRPG7::ReloadMagazine(const bool ForAmmoChangeOnly)
 {
-    inherited::ReloadMagazine();
+    inherited::ReloadMagazine(ForAmmoChangeOnly);
 
     if (iAmmoElapsed && !getRocketCount())
     {

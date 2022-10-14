@@ -42,7 +42,7 @@ public:
     virtual void OnShot();
     virtual void SwitchState(u32 S);
     virtual void OnEvent(NET_Packet& P, u16 type);
-    virtual void ReloadMagazine();
+    virtual void ReloadMagazine(const bool ForAmmoChangeOnly = false);
 
     virtual bool Action(s32 cmd, u32 flags);
 

@@ -2283,6 +2283,7 @@ void CWeapon::ProcessAmmoAdv(const bool forced)
     u32 cnt = iAmmoElapsed;
 
     u32 ammotype = 0;
+    static bool need_reload{};
     if (g_b)
     {
         //Оружие в режиме стрельбы подстволом
@@ -2312,12 +2313,11 @@ void CWeapon::ProcessAmmoAdv(const bool forced)
 			{
 				const float _time = READ_IF_EXISTS(pSettings, r_float, hud_sect, (std::string("lock_time_start_") + GetCurrentMotion()).c_str(), 0) * 1000.f;
 				const float current_time = Device.dwTimeGlobal - m_dwMotionStartTm;
-				if (_time && current_time >= _time) {
-					if(m_set_next_ammoType_on_reload != u32(-1)) {		
-						m_ammoType						= m_set_next_ammoType_on_reload;
-						m_set_next_ammoType_on_reload	= u32(-1);
-					}
-					cnt = static_cast<u32>(iMagazineSize);
+				if (need_reload && _time && current_time >= _time) {
+					need_reload = false;
+					if (const auto wpn_mag = smart_cast<CWeaponMagazined*>(this))
+                        wpn_mag->ReloadMagazine(true);
+					cnt = static_cast<u32>(iAmmoElapsed);
 				}
 			}
 
@@ -2334,6 +2334,7 @@ void CWeapon::ProcessAmmoAdv(const bool forced)
     }
     else
     {
+        need_reload = true;
         //не в состоянии перезарядки, подствол выключен
         ammotype = GetOrdinalAmmoType();
 

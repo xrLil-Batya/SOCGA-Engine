@@ -432,9 +432,9 @@ void CWeaponMagazinedWGrenade::OnEvent(NET_Packet& P, u16 type)
     }
 }
 
-void CWeaponMagazinedWGrenade::ReloadMagazine()
+void CWeaponMagazinedWGrenade::ReloadMagazine(const bool ForAmmoChangeOnly)
 {
-    inherited::ReloadMagazine();
+    inherited::ReloadMagazine(ForAmmoChangeOnly);
 
     //перезарядка подствольного гранатомета
     if (iAmmoElapsed && !getRocketCount() && m_bGrenadeMode)

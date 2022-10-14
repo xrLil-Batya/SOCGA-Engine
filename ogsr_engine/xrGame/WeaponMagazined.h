@@ -17,6 +17,8 @@ private:
     using inherited = CWeapon;
 
 protected:
+    friend class CWeapon;
+
     // Media :: sounds
     HUD_SOUND sndShow;
     HUD_SOUND sndHide;
@@ -79,7 +81,7 @@ protected:
     bool TryReload();
 
 protected:
-    virtual void ReloadMagazine();
+    virtual void ReloadMagazine(const bool ForAmmoChangeOnly = false);
     void ApplySilencerKoeffs();
 
     virtual void state_Fire(float dt);
