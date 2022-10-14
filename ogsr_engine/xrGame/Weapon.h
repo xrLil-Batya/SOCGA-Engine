@@ -567,7 +567,7 @@ public:
     float GetHudFov() override;
 
     virtual void OnBulletHit();
-    virtual bool IsPartlyReloading() const { return m_set_next_ammoType_on_reload == u32(-1) && GetAmmoElapsed() > 0 && !IsMisfire(); }
+    virtual bool IsPartlyReloading() const { return GetAmmoElapsed() > 0 && !IsMisfire(); }
 
     virtual void processing_deactivate() override
     {
