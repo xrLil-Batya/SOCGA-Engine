@@ -157,7 +157,8 @@ protected:
     bool m_bHasDifferentFireModes;
     xr_vector<int> m_aFireModes;
     int m_iCurFireMode;
-    string16 m_sCurFireMode;
+    string16 m_sCurFireMode{}, cur_fire_mode_prefix{};
+
     int m_iPrefferedFireMode;
     u32 m_fire_zoomout_time = u32(-1);
 

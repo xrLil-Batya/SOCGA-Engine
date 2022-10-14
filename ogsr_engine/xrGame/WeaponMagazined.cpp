@@ -1498,12 +1498,8 @@ const char* CWeaponMagazined::GetFireModeMask()
 	if(!m_bHasDifferentFireModes)
 		return "";
 
-	const char* cur_fire_mode_prefix = GetQueueSize() < 0 ? "a" : IntToStr(GetQueueSize());
 	string_path guns_fire_mode_mask;
-
 	xr_strconcat(guns_fire_mode_mask, "mask_firemode_", cur_fire_mode_prefix);
-	if(ParentIsActor())
-		Msg("Reading section [%s]", guns_fire_mode_mask);
 	return READ_IF_EXISTS(pSettings, r_string, *HudSection(), guns_fire_mode_mask, "");
 }
 
@@ -1708,17 +1704,7 @@ void CWeaponMagazined::switch2_suicide_stop()
 //переключение режимов стрельбы одиночными и очередями
 bool CWeaponMagazined::SwitchMode()
 {
-    if (eIdle != GetState() || IsPending())
-        return false;
-
-    if (SingleShotMode())
-        m_iQueueSize = WEAPON_ININITE_QUEUE;
-    else
-        m_iQueueSize = 1;
-
-    PlaySound(sndEmptyClick, get_LastFP());
-
-    return true;
+    return false;
 }
 
 void CWeaponMagazined::switch2_NextFireMode()
@@ -1727,13 +1713,11 @@ void CWeaponMagazined::switch2_NextFireMode()
 		return;
 
 	const int next_fire_mode_id = m_aFireModes[(m_iCurFireMode + 1 + m_aFireModes.size()) % m_aFireModes.size()];
-    const char* cur_fire_mode_prefix = m_aFireModes[(m_iCurFireMode + m_aFireModes.size()) % m_aFireModes.size()] < 0 ? "a" : IntToStr(m_aFireModes[(m_iCurFireMode + m_aFireModes.size()) % m_aFireModes.size()]);
     const char* next_fire_mode_prefix = next_fire_mode_id < 0 ? "a" : IntToStr(next_fire_mode_id);
 
 	string_path guns_firemode_anm;
 	xr_strconcat(guns_firemode_anm, "anm_changefiremode_from_", cur_fire_mode_prefix, "_to_", next_fire_mode_prefix, (IsGrenadeMode() ? smart_cast<CWeaponMagazinedWGrenade*>(this)->iAmmoElapsed2 : iAmmoElapsed) == 0 ? "_empty" : (IsMisfire() ? "_jammed" : ""), IsGrenadeLauncherAttached() ? (IsGrenadeMode() ? "_g" : "_w_gl") : "");
 	if(ParentIsActor())
-		Msg("Playing motion [%s]", guns_firemode_anm);
 	if(AnimationExist(guns_firemode_anm))
 	{
 		SwitchState(eNextFireMode);
@@ -1751,13 +1735,11 @@ void CWeaponMagazined::switch2_PrevFireMode()
 		return;
 
 	const int prev_fire_mode_id = m_aFireModes[(m_iCurFireMode - 1 + m_aFireModes.size()) % m_aFireModes.size()];
-    const char* cur_fire_mode_prefix = GetQueueSize() < 0 ? "a" : IntToStr(GetQueueSize());
     const char* prev_fire_mode_prefix = prev_fire_mode_id < 0 ? "a" : IntToStr(prev_fire_mode_id);
 
 	string_path guns_firemode_anm;
 	xr_strconcat(guns_firemode_anm, "anm_changefiremode_from_", cur_fire_mode_prefix, "_to_", prev_fire_mode_prefix, (IsGrenadeMode() ? smart_cast<CWeaponMagazinedWGrenade*>(this)->iAmmoElapsed2 : iAmmoElapsed) == 0 ? "_empty" : (IsMisfire() ? "_jammed" : ""), IsGrenadeLauncherAttached() ? (IsGrenadeMode() ? "_g" : "_w_gl") : "");
 	if(ParentIsActor())
-		Msg("Playing motion [%s]", guns_firemode_anm);
 	if(AnimationExist(guns_firemode_anm))
 	{
 		SwitchState(ePrevFireMode);
@@ -1794,10 +1776,16 @@ void CWeaponMagazined::SetQueueSize(int size)
 {
     m_iQueueSize = size;
     if (m_iQueueSize == -1)
+    {
         strcpy_s(m_sCurFireMode, " (A)");
+        strcpy_s(cur_fire_mode_prefix, "a");
+    }
     else
+    {
         sprintf_s(m_sCurFireMode, " (%d)", m_iQueueSize);
-};
+        sprintf_s(cur_fire_mode_prefix, "%d", m_iQueueSize);
+    }
+}
 
 float CWeaponMagazined::GetWeaponDeterioration()
 {
