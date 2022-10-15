@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "base_monster.h"
+#include "ai/monsters/burer/burer.h"
 #include "../../../actor.h"
 #include "../../../ActorEffector.h"
 #include "../ai_monster_effector.h"
@@ -27,6 +27,14 @@
 #include "profiler.h"
 #include "../../../ActorEffector.h"
 #include "../../../../xr_3da/CameraBase.h"
+#include "ai/monsters/boar/boar.h"
+#include "inventory.h"
+#include "ui/UIInventoryWnd.h"
+#include "WeaponKnife.h"
+#include "WeaponBinoculars.h"
+#include "PDA.h"
+#include "Bolt.h"
+#include "player_hud.h"
 
 void CBaseMonster::feel_sound_new(CObject* who, int eType, CSound_UserDataPtr user_data, const Fvector& Position, float power)
 {
@@ -116,6 +124,23 @@ void CBaseMonster::HitEntity(const CEntity* pEntity, float fDamage, float impuls
         HS.hit_type = hit_type; //		l_P.w_u16	( u16(ALife::eHitTypeWound) );
         HS.Write_Packet(l_P);
         u_EventSend(l_P);
+		if((smart_cast<CAI_Boar*>(this) || smart_cast<CBurer*>(this)) && pEntityNC == Actor())
+		{
+			if(g_player_hud->script_anim_part == u8(-1))
+				g_player_hud->script_anim_play(2, smart_cast<CAI_Boar*>(this) ? "boar_front_kick0_animator_hud" : "burer_kick0_animator_hud", "anm_show", false);
+			CHudItemObject* itm = smart_cast<CHudItemObject*>(Actor()->inventory().ActiveItem());
+			if(itm)
+			{
+				Actor()->inventory().Activate(NO_ACTIVE_SLOT, eGeneral, true, true);
+				if(!smart_cast<CUIInventoryWnd*>(itm) && !smart_cast<CPda*>(itm) && !smart_cast<CBolt*>(itm) && !smart_cast<CWeaponKnife*>(itm) && !smart_cast<CWeaponBinoculars*>(itm))
+                    itm->SetDropManual(true);
+			}
+			if(const auto det_attach = g_player_hud->attached_item(1))
+			{
+				if(const auto det = smart_cast<CHudItemObject*>(det_attach->m_parent_hud_item))
+					det->SetDropManual(true);
+			}
+		}
 
         if (pEntityNC == Actor() && draw_hit_marks)
         {

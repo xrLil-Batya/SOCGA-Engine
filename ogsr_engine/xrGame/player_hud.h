@@ -4,6 +4,7 @@
 #include "../Include/xrRender/Kinematics.h"
 #include "../Include/xrRender/KinematicsAnimated.h"
 #include "actor_defs.h"
+#include "../xr_3da/ObjectAnimator.h"
 
 class player_hud;
 class CHudItem;
@@ -129,6 +130,71 @@ struct attachable_hud_item
     u32 anim_play(const shared_str& anim_name, BOOL bMixIn, const CMotionDef*& md, u8& rnd, bool randomAnim);
 };
 
+struct hand_motions
+{
+	const char* section;
+	player_hud_motion_container pm;
+};
+
+struct item_models
+{
+	const char* name;
+	IKinematicsAnimated* model;
+};
+
+struct script_layer
+{
+	const char* m_name;
+	CObjectAnimator* anm;
+	float blend_amount;
+	float m_power;
+	bool active;
+	Fmatrix blend;
+	u8 m_part;
+
+	script_layer(const char* name, const u8 part, const float speed = 1.f, const float power = 1.f, const bool looped = true)
+	{
+		m_name = name;
+		m_part = part;
+		m_power = power;
+		blend.identity();
+		anm = xr_new<CObjectAnimator>();
+		anm->Load(name);
+		anm->Play(looped);
+		anm->Speed() = speed;
+		blend_amount = 0.f;
+		active = true;
+	}
+
+	bool IsPlaying()
+	{
+		return anm->IsPlaying();
+	}
+
+	void Stop(bool bForce)
+	{
+		if (bForce)
+		{
+			anm->Stop();
+			blend_amount = 0.f;
+			blend.identity();
+		}
+
+		active = false;
+	}
+
+	const Fmatrix& XFORM()
+	{
+		blend.set(anm->XFORM());
+		blend.mul(blend_amount * m_power);
+		blend.m[0][0] = 1.f;
+		blend.m[1][1] = 1.f;
+		blend.m[2][2] = 1.f;
+
+		return blend;
+	}
+};
+
 enum eMovementLayers : u8
 {
 	eAimWalk = 0,
@@ -140,7 +206,6 @@ enum eMovementLayers : u8
 	move_anms_end
 };
 
-#include "../xr_3da/ObjectAnimator.h"
 struct movement_layer
 {
 	CObjectAnimator* const anm = xr_new<CObjectAnimator>();
@@ -224,6 +289,15 @@ public:
     void load(const shared_str& model_name);
     void load_default() { load("actor_hud_05"); };
     void update(const Fmatrix& trans);
+	void StopScriptAnim();
+	void updateMovementLayerState();
+	void PlayBlendAnm(const char* name, const u8 part = 0, const float speed = 1.f, const float power = 1.f, const bool bLooped = true, const bool no_restart = false);
+	void StopBlendAnm(const char* name, const bool bForce = false);
+	void StopAllBlendAnms(const bool bForce);
+	float SetBlendAnmTime(const char* name, const float time);
+	u32 script_anim_play(const u8 hand, const char* itm_name, const char* anm_name, const bool bMixIn = true, const float speed = 1.f);
+	bool allow_script_anim();
+	u32 motion_length_script(const char* section, const char* anm_name, const float speed);
     void render_hud();
     void render_item_ui();
     bool render_item_ui_query();
@@ -251,7 +325,6 @@ public:
     void re_sync_anim(u8 part);
     void GetLHandBoneOffsetPosDir(const shared_str& bone_name, Fvector& dest_pos, Fvector& dest_dir, const Fvector& offset);
 
-	void updateMovementLayerState();
 	std::vector<movement_layer*> m_movement_layers;
 
     Fvector target_thumb0rot{}, target_thumb01rot{}, target_thumb02rot{};
@@ -269,7 +342,24 @@ public:
         target_thumb02rot.set(0.f, 0.f, 0.f);
     }
 
+	u8 script_anim_part;
 private:
+	Fvector script_anim_offset[2];
+	u32 script_anim_end;
+	float script_anim_offset_factor;
+	bool m_bStopAtEndAnimIsRunning;
+	bool script_anim_item_attached;
+	IKinematicsAnimated* script_anim_item_model;
+	Fvector item_pos[2];
+	Fmatrix m_item_pos;
+	u8 m_attach_idx;
+
+	xr_vector<script_layer*> m_script_layers;
+	xr_vector<hand_motions*> m_hand_motions;
+	player_hud_motion_container* get_hand_motions(LPCSTR section);
+
+	void update_script_item();
+
     static void Thumb0Callback(CBoneInstance* B);
     static void Thumb01Callback(CBoneInstance* B);
     static void Thumb02Callback(CBoneInstance* B);

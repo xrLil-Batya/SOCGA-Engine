@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "monster_aura.h"
-#include "basemonster/base_monster.h"
+#include "controller/controller.h"
 #include "../../Actor.h"
 #include "../../ActorEffector.h"
 //#include "../../HudSound.h"
@@ -117,7 +117,7 @@ void monster_aura::remove_pp_effector()
         m_sound.stop();
         m_detect_sound.stop();
 
-        if (this_is_psy_aura)
+        if (this_is_psy_aura && smart_cast<CController*>(m_object))
             Actor()->PsyAuraAffect = false;
     }
 }
@@ -194,14 +194,14 @@ void monster_aura::update_schedule()
             m_pp_index = Actor()->Cameras().RequestPPEffectorId();
             AddEffector(Actor(), m_pp_index, m_pp_effector_name, fastdelegate::MakeDelegate(this, &monster_aura::get_post_process_factor));
         }
-        if (this_is_psy_aura)
+        if (this_is_psy_aura && smart_cast<CController*>(m_object))
             Actor()->PsyAuraAffect = true;
     }
     else if (m_pp_index != 0)
     {
         RemoveEffector(Actor(), m_pp_index);
         m_pp_index = 0;
-        if (this_is_psy_aura)
+        if (this_is_psy_aura && smart_cast<CController*>(m_object))
             Actor()->PsyAuraAffect = false;
     }
 }

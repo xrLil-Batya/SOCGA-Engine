@@ -15,6 +15,7 @@
 #include "UI/UIGameTutorial.h"
 #include "string_table.h"
 #include "object_broker.h"
+#include "player_hud.h"
 
 using namespace luabind;
 
@@ -44,6 +45,46 @@ void stop_tutorial()
 LPCSTR translate_string(LPCSTR str) { return *CStringTable().translate(str); }
 
 bool has_active_tutotial() { return (g_tutorial != NULL); }
+
+u32 PlayHudMotion(const u8 hand, const char* itm_name, const char* anm_name, const bool bMixIn = true, const float speed = 1.f)
+{
+	return g_player_hud->script_anim_play(hand, itm_name, anm_name, bMixIn, speed);
+}
+
+void StopHudMotion()
+{
+	g_player_hud->StopScriptAnim();
+}
+
+float MotionLength(const char* section, const char* name, const float speed)
+{
+	return g_player_hud->motion_length_script(section, name, speed);
+}
+
+bool AllowHudMotion()
+{
+	return g_player_hud->allow_script_anim();
+}
+
+void PlayBlendAnm(const char* name, const u8 part, const float speed, const float power, const bool bLooped, const bool no_restart)
+{
+	g_player_hud->PlayBlendAnm(name, part, speed, power, bLooped, no_restart);
+}
+
+void StopBlendAnm(const char* name, const bool bForce)
+{
+	g_player_hud->StopBlendAnm(name, bForce);
+}
+
+void StopAllBlendAnms(const bool bForce)
+{
+	g_player_hud->StopAllBlendAnms(bForce);
+}
+
+float SetBlendAnmTime(const char* name, const float time)
+{
+	return g_player_hud->SetBlendAnmTime(name, time);
+}
 
 #pragma optimize("s", on)
 void game_sv_GameState::script_register(lua_State* L)

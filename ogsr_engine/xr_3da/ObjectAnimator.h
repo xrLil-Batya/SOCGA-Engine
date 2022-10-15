@@ -9,7 +9,6 @@ private:
     using MotionVec = xr_vector<COMotion*>;
 
 protected:
-    bool bLoop;
 
     shared_str m_Name;
 
@@ -18,12 +17,13 @@ protected:
     MotionVec m_Motions;
     float m_Speed;
 
+public:
+    bool bLoop;
     COMotion* m_Current;
     void LoadMotions(LPCSTR fname);
     void SetActiveMotion(COMotion* mot);
     COMotion* FindMotionByName(LPCSTR name);
 
-public:
     CObjectAnimator();
     virtual ~CObjectAnimator();
 
@@ -36,6 +36,7 @@ public:
     void Pause(bool val) { return m_MParam.Pause(val); }
     void Stop();
     IC BOOL IsPlaying() { return m_MParam.bPlay; }
+	const SAnimParams&	anim_param() { return m_MParam; }
 
     IC const Fmatrix& XFORM() { return m_XFORM; }
     float GetLength();

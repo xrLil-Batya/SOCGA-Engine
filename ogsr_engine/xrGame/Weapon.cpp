@@ -929,10 +929,13 @@ void CWeapon::UpdateCL()
 
     if(const auto actor = smart_cast<CActor*>(H_Parent()))
     {
-        if(actor->PsyAuraAffect && GetState() != eSuicideStart && GetState() != eSuicideStop && GetState() != eFire && GetState() != eShowing && GetState() != eHiding && GetState() != eHidden)
+        if(actor->PsyAuraAffect && GetState() != eSuicideStart && GetState() != eSuicideStop && GetState() != eFire && GetState() != eShowing && GetState() != eHiding && GetState() != eHidden && g_player_hud->script_anim_part == u8(-1))
         {
             if((IsPending() || !iAmmoElapsed || !(AnimationExist("anm_suicide") || AnimationExist("anm_prepare_suicide")) || IsGrenadeLauncherAttached()) && !smart_cast<CWeaponKnife*>(this))
-                actor->inventory().Action(kWPN_1, CMD_START);
+			{
+				SetState(eHidden);
+                actor->inventory().Activate(KNIFE_SLOT);
+			}
             else
                 SwitchState(eSuicideStart);
         }
