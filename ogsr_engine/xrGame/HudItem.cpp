@@ -135,19 +135,19 @@ void CHudItem::Load(LPCSTR section)
 	//////////////// Прыжок ////////////////////
 	m_jump_offset[0] = READ_IF_EXISTS(pSettings, r_fvector3, section, "hud_move_jump_offset_pos", (Fvector{ 0.f, 0.05f, 0.03f }));
 	m_jump_offset[1] = READ_IF_EXISTS(pSettings, r_fvector3, section, "hud_move_jump_offset_rot", (Fvector{ 0.f, -10.f, -10.f }));
-	fJumpMaxTime = READ_IF_EXISTS(pSettings, r_float, section, "jump_transition_time", 0.26f);
+	fJumpMaxTime = READ_IF_EXISTS(pSettings, r_float, section, "jump_transition_time", 0.28f);
 
 	m_fall_offset[0] = READ_IF_EXISTS(pSettings, r_fvector3, section, "hud_move_fall_offset_pos", (Fvector{ 0.f, -0.05f, 0.06f }));
 	m_fall_offset[1] = READ_IF_EXISTS(pSettings, r_fvector3, section, "hud_move_fall_offset_rot", (Fvector{ 0.f, 5.f, 0.f }));
-	fFallMaxTime = READ_IF_EXISTS(pSettings, r_float, section, "fall_transition_time", 0.6f);
+	fFallMaxTime = READ_IF_EXISTS(pSettings, r_float, section, "fall_transition_time", 0.45f);
 
 	m_landing_offset[0] = READ_IF_EXISTS(pSettings, r_fvector3, section, "hud_move_landing_offset_pos", (Fvector{ 0.f, -0.2f, 0.03f }));
 	m_landing_offset[1] = READ_IF_EXISTS(pSettings, r_fvector3, section, "hud_move_landing_offset_rot", (Fvector{ 0.f, -5.f, 10.f }));
-	fLandingMaxTime = READ_IF_EXISTS(pSettings, r_float, section, "landing_transition_time", 0.7f);
+	fLandingMaxTime = READ_IF_EXISTS(pSettings, r_float, section, "landing_transition_time", 0.45f);
 
 	m_landing2_offset[0] = READ_IF_EXISTS(pSettings, r_fvector3, section, "hud_move_landing2_offset_pos", (Fvector{ 0.f, -0.3f, 0.03f }));
 	m_landing2_offset[1] = READ_IF_EXISTS(pSettings, r_fvector3, section, "hud_move_landing2_offset_rot", (Fvector{ 0.f, -13.f, 20.f }));
-	fLanding2MaxTime = READ_IF_EXISTS(pSettings, r_float, section, "landing2_transition_time", 0.7f);
+	fLanding2MaxTime = READ_IF_EXISTS(pSettings, r_float, section, "landing2_transition_time", 0.45f);
 
 	if (fJumpMaxTime <= EPS)
 		fJumpMaxTime = 0.01f;
