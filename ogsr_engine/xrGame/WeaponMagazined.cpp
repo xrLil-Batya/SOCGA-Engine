@@ -1717,7 +1717,6 @@ void CWeaponMagazined::switch2_NextFireMode()
 
 	string_path guns_firemode_anm;
 	xr_strconcat(guns_firemode_anm, "anm_changefiremode_from_", cur_fire_mode_prefix, "_to_", next_fire_mode_prefix, (IsGrenadeMode() ? smart_cast<CWeaponMagazinedWGrenade*>(this)->iAmmoElapsed2 : iAmmoElapsed) == 0 ? "_empty" : (IsMisfire() ? "_jammed" : ""), IsGrenadeLauncherAttached() ? (IsGrenadeMode() ? "_g" : "_w_gl") : "");
-	if(ParentIsActor())
 	if(AnimationExist(guns_firemode_anm))
 	{
 		SwitchState(eNextFireMode);
@@ -1739,7 +1738,6 @@ void CWeaponMagazined::switch2_PrevFireMode()
 
 	string_path guns_firemode_anm;
 	xr_strconcat(guns_firemode_anm, "anm_changefiremode_from_", cur_fire_mode_prefix, "_to_", prev_fire_mode_prefix, (IsGrenadeMode() ? smart_cast<CWeaponMagazinedWGrenade*>(this)->iAmmoElapsed2 : iAmmoElapsed) == 0 ? "_empty" : (IsMisfire() ? "_jammed" : ""), IsGrenadeLauncherAttached() ? (IsGrenadeMode() ? "_g" : "_w_gl") : "");
-	if(ParentIsActor())
 	if(AnimationExist(guns_firemode_anm))
 	{
 		SwitchState(ePrevFireMode);
