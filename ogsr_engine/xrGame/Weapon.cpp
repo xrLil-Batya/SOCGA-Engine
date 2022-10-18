@@ -940,6 +940,13 @@ void CWeapon::UpdateCL()
                 SwitchState(eSuicideStart);
         }
     }
+	if(ParentIsActor() && GetState() != eHidden)
+	{
+		float x = Device.fTimeGlobal - last_shoot_time;
+		if(x > Device.fTimeGlobal)
+			x = float(0xffffffff) - last_shoot_time + Device.fTimeGlobal;
+		shader_exports.set_weapon_params(Fvector4{x, fTimeToFire, 0.f, 0.f});
+	}
 }
 
 void CWeapon::OnStateSwitch(u32 S, u32 oldState)

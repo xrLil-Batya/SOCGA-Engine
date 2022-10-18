@@ -408,9 +408,28 @@ static class cl_actor_params final : public R_constant_setup
     void setup(R_constant* C) override
     {
         const auto& P = shader_exports.get_actor_params();
-        RCache.set_c(C, P.x, P.y, P.z, g_pGamePersistent->Environment().USED_COP_WEATHER ? 1.0f : 0.0f);
+		const auto& wpn = shader_exports.get_weapon_params();
+		float a = wpn.x / float(floor(wpn.y));
+		clamp(a, 0.f, 1.f);
+
+        RCache.set_c(C, P.x, P.y, P.z, a);
     }
 } binder_actor_params;
+
+static class cl_time_params final : public R_constant_setup
+{
+    void setup(R_constant* C) override
+    {
+        u32 hours{}, mins{}, unused{};
+        if (g_pGameLevel)
+            g_pGameLevel->GetGameTimeForShaders(hours, mins, unused, unused);
+		const float hh = float(hours / 10) / 10.f; // старший разряд часов
+		const float hl = float(hours % 10) / 10.f; // младший разряд часов
+		const float mh = float(mins / 10) / 10.f; // старший разряд минут
+		const float ml = float(mins % 10) / 10.f; // младший разряд минут
+        RCache.set_c(C, hh, hl, mh, ml);
+    }
+} binder_time_params;
 
 // Standart constant-binding
 void CBlender_Compile::SetMapping()
@@ -497,6 +516,7 @@ void CBlender_Compile::SetMapping()
     r_Constant("m_affects", &binder_pda_params);
 
     r_Constant("m_actor_params", &binder_actor_params);
+    r_Constant("m_digiclock", &binder_time_params);
 
     // other common
     for (const auto& [name, s] : DEV->v_constant_setup)

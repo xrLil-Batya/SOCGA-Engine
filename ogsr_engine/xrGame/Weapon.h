@@ -222,6 +222,7 @@ protected:
     int m_iScopeX, m_iScopeY;
     int m_iSilencerX, m_iSilencerY;
     int m_iGrenadeLauncherX, m_iGrenadeLauncherY;
+	float last_shoot_time{};
 
     ///////////////////////////////////////////////////
     //	для режима приближения и снайперского прицела

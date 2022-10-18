@@ -789,6 +789,8 @@ void CWeaponMagazined::OnShot()
 
     if(const auto actor = smart_cast<CActor*>(H_Parent()); actor && bSuicide)
         actor->Die(this);
+
+	last_shoot_time = Device.fTimeGlobal;
 }
 
 void CWeaponMagazined::OnEmptyClick()

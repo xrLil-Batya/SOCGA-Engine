@@ -794,7 +794,7 @@ float CActor::currentFOV()
 void CActor::UpdateCL()
 {
     if(PsyAuraAffect && (!smart_cast<CWeapon*>(inventory().ActiveItem()) || smart_cast<CWeaponBinoculars*>(inventory().ActiveItem())))
-        inventory().Action(kWPN_1, CMD_START);
+        inventory().Activate(KNIFE_SLOT);
 
     if (m_feel_touch_characters > 0)
     {
@@ -884,7 +884,6 @@ void CActor::UpdateCL()
             Device.m_SecondViewport.SetSVPActive(false); //--#SM+#-- +SecondVP+
         }
     }
-
     UpdateDefferedMessages();
 
     if (g_Alive())
