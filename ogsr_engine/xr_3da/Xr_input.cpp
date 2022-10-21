@@ -601,3 +601,11 @@ void CInput::clip_cursor(bool clip)
         ClipCursor(nullptr);
     }
 }
+
+const int CInput::scancodeToChar(int scanCode, uint16_t ch[2])
+{
+	UINT vk = MapVirtualKey(scanCode, MAPVK_VSC_TO_VK);
+	if (vk == 0)
+		return 0;
+	return ToAscii(vk, scanCode, KBState, ch, 0);
+}

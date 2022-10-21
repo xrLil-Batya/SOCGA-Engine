@@ -28,6 +28,7 @@
 #include "MainMenu.h"
 #include "UIGameSP.h"
 #include "ui/uiinventorywnd.h"
+#include "embedded_editor/embedded_editor_main.h"
 
 #ifdef DEBUG
 #include "ai/monsters/BaseMonster/base_monster.h"
@@ -47,6 +48,8 @@ void CLevel::IR_OnMouseWheel(int direction)
 {
     if (g_bDisableAllInput)
         return;
+	if (Editor_MouseWheel(direction))
+		return;
 
     if (HUD().GetUI()->IR_OnMouseWheel(direction))
         return;
@@ -79,6 +82,8 @@ void CLevel::IR_OnMouseMove(int dx, int dy)
 {
     if (g_bDisableAllInput)
         return;
+	if (Editor_MouseMove(dx, dy))
+		return;
     if (pHUD->GetUI()->IR_OnMouseMove(dx, dy))
         return;
     if (Device.Paused())
@@ -125,6 +130,9 @@ public:
 extern bool g_block_pause;
 void CLevel::IR_OnKeyboardPress(int key)
 {
+	if (Editor_KeyPress(key))
+		return;
+
     if (GamePersistent().OnKeyboardPress(key))
         return;
 
@@ -396,8 +404,10 @@ void CLevel::IR_OnKeyboardPress(int key)
 
 void CLevel::IR_OnKeyboardRelease(int key)
 {
-    bool b_ui_exist = (pHUD && pHUD->GetUI());
+	if (Editor_KeyRelease(key))
+		return;
 
+    const bool b_ui_exist = (pHUD && pHUD->GetUI());
     if (g_bDisableAllInput)
         return;
     if (b_ui_exist && pHUD->GetUI()->IR_OnKeyboardRelease(key))
@@ -424,6 +434,8 @@ void CLevel::IR_OnKeyboardHold(int key)
 {
     if (g_bDisableAllInput)
         return;
+	if (Editor_KeyHold(key))
+		return;
 
     bool b_ui_exist = (pHUD && pHUD->GetUI());
 

@@ -6117,6 +6117,9 @@
       <Filter>Core\Client\Objects\items &amp; weapons\Devices\Detectors</Filter>
     </ClInclude>
     <ClInclude Include="Flashlight.h" />
+    <ClInclude Include="embedded_editor\embedded_editor_helper.h" />
+    <ClInclude Include="embedded_editor\embedded_editor_main.h" />
+    <ClInclude Include="embedded_editor\embedded_editor_hud.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -8929,6 +8932,9 @@
       <Filter>Core\Client\Objects\items &amp; weapons\Devices\Detectors</Filter>
     </ClCompile>
     <ClCompile Include="Flashlight.cpp" />
+    <ClCompile Include="embedded_editor\embedded_editor_helper.cpp" />
+    <ClCompile Include="embedded_editor\embedded_editor_main.cpp" />
+    <ClCompile Include="embedded_editor\embedded_editor_hud.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuildStep Include="Explosive.h">

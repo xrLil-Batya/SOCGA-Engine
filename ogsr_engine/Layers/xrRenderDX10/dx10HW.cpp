@@ -11,6 +11,8 @@
 #include "../../xr_3da/XR_IOConsole.h"
 #include "../../xr_3da/xr_input.h"
 #include "../../Include/xrAPI/xrAPI.h"
+#include <imgui.h>
+#include "imgui_impl_dx11.h"
 
 #include "StateManager\dx10SamplerStateCache.h"
 #include "StateManager\dx10StateCache.h"
@@ -174,6 +176,7 @@ void CHW::CreateDevice(HWND m_hWnd, bool move_window)
 
     updateWindowProps(m_hWnd);
     fill_vid_mode_list(this);
+	ImGui_ImplDX11_Init(m_hWnd, pDevice, pContext);
 }
 
 void CHW::CreateSwapChain(HWND hwnd)
@@ -286,6 +289,8 @@ bool CHW::CreateSwapChain2(HWND hwnd)
 
 void CHW::DestroyDevice()
 {
+	ImGui_ImplDX11_Shutdown();
+
     //	Destroy state managers
     StateManager.Reset();
     RSManager.ClearStateArray();
@@ -341,6 +346,7 @@ void CHW::DestroyDevice()
 //////////////////////////////////////////////////////////////////////
 void CHW::Reset(HWND hwnd)
 {
+	ImGui_ImplDX11_InvalidateDeviceObjects();
     DXGI_SWAP_CHAIN_DESC& cd = m_ChainDesc;
 
     BOOL bWindowed = !psDeviceFlags.is(rsFullscreen);
@@ -377,6 +383,7 @@ void CHW::Reset(HWND hwnd)
     UpdateViews();
 
     updateWindowProps(hwnd);
+	ImGui_ImplDX11_CreateDeviceObjects();
 }
 
 bool CHW::UsingFlipPresentationModel() const

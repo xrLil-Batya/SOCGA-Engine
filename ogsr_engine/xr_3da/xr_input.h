@@ -46,7 +46,7 @@ private:
     BOOL mouseState[COUNT_MOUSE_BUTTONS];
 
     //----------------------
-    BOOL KBState[COUNT_KB_BUTTONS];
+    u8 KBState[COUNT_KB_BUTTONS];
 
     HRESULT CreateInputDevice(LPDIRECTINPUTDEVICE8* device, GUID guidDevice, const DIDATAFORMAT* pdidDataFormat, u32 dwFlags, u32 buf_size);
 
@@ -86,6 +86,7 @@ public:
 
 public:
     bool get_dik_name(int dik, LPSTR dest, int dest_sz);
+	const int scancodeToChar(int scanCode, uint16_t ch[2]);
 
     // Возвращает символ по коду клавиши. Учитывается переключение языка, зажатый shift и caps lock
     // ( caps lock учитывается только в неэксклюзивном режиме, из-за его особенностей )
