@@ -30,6 +30,7 @@
 #include "Level_Bullet_Manager.h"
 #include "../xr_3da/GameMtlLib.h"
 #include "script_game_object.h"
+#include "player_hud.h"
 
 constexpr const char* KNIFE_MATERIAL_NAME = "objects\\knife";
 CWeaponMagazined::CWeaponMagazined(LPCSTR name, ESoundTypes eSoundType) : CWeapon(name)
@@ -640,6 +641,20 @@ void CWeaponMagazined::UpdateCL()
     UpdateSounds();
     TimeLockAnimation();
 	KnifeKick_Timer();
+
+	if(pSettings->line_exist(*HudSection(), "firemode_bones_total"))
+	{
+		const char* bones_names = pSettings->r_string(*HudSection(), "firemode_bones_total");
+        SetWeaponMultipleBonesStatus(bones_names, false);
+		string64 guns_firemode_bone{};
+		xr_strconcat(guns_firemode_bone, "firemode_bones_", cur_fire_mode_prefix);
+
+		if(pSettings->line_exist(*HudSection(), guns_firemode_bone))
+		{
+			const char* bone_name = pSettings->r_string(*HudSection(), guns_firemode_bone);
+			SetWeaponMultipleBonesStatus(bone_name, true);
+		}
+	}
 }
 
 void CWeaponMagazined::UpdateSounds()
