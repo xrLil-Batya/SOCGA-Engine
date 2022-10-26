@@ -47,7 +47,7 @@ bool CFlashlight::CheckCompatibilityInt(CHudItem* itm, u16* slot_to_activate)
 
 	CInventoryItem& iitm = itm->item();
 	u32 slot = iitm.BaseSlot();
-	bool bres = (slot == FIRST_WEAPON_SLOT || slot == KNIFE_SLOT || slot == BOLT_SLOT);
+	bool bres = (slot == FIRST_WEAPON_SLOT || slot == KNIFE_SLOT || slot == BOLT_SLOT || slot == GRENADE_SLOT);
 	CActor* pActor = smart_cast<CActor*>(H_Parent());
 	auto& Inv = pActor->inventory();
 
@@ -77,7 +77,7 @@ bool CFlashlight::CheckCompatibilityInt(CHudItem* itm, u16* slot_to_activate)
 	{
 		CWeapon* W = smart_cast<CWeapon*>(itm);
 		if (W)
-			bres = bres && (W->GetState() != CHUDState::eBore) && (W->GetState() != CWeapon::eReload) && (W->GetState() != CWeapon::eSwitch) && !W->IsZoomed();
+			bres &= (W->GetState() != CHUDState::eBore) && (W->GetState() != CWeapon::eReload) && (W->GetState() != CWeapon::eSwitch);
 	}
 	return bres;
 }
@@ -301,7 +301,7 @@ void CFlashlight::UpdateVisibility()
 			if (wpn)
 			{
 				u32 state = wpn->GetState();
-				if (wpn->IsZoomed() || state == CWeapon::eReload || state == CWeapon::eSwitch)
+				if (state == CWeapon::eReload || state == CWeapon::eSwitch)
 				{
 					HideDevice(true);
 					m_bNeedActivation = true;

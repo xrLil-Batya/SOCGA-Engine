@@ -392,7 +392,7 @@ u32 CHudItem::PlayHUDMotion(const char* M, const bool bMixIn, const u32 state, c
     if (Det && Det->m_parent_hud_item != this && Wpn && Wpn->m_parent_hud_item == this && (smart_cast<CWeapon*>(this) || smart_cast<CMissile*>(this)) &&
         Det->m_parent_hud_item->GetState() == eIdle)
     {
-        if (strstr(M, "anm_") && !strstr(M, "idle"))
+        if (strstr(M, "anm_") && (!strstr(M, "idle") || strstr(M, "idle_aim")))
         { //с айдловыми анимациями слишком много багов
             string128 det_anm_name;
             xr_strconcat(det_anm_name, "anm_lefthand_", Det->m_parent_hud_item->world_sect.c_str(), "_wpn_", M + 4);

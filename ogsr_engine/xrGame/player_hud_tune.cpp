@@ -469,6 +469,45 @@ void player_hud::SaveCfg(const int idx) const
 		make_string("%f,%f,%f", hi->m_measures.m_item_attach[1].x, hi->m_measures.m_item_attach[1].y, hi->m_measures.m_item_attach[1].z)
 		.c_str());
 
+	pHudCfg.w_string(sect_name,
+		"fire_point",
+		make_string("%f,%f,%f",
+			hi->m_measures.m_fire_point_offset.x,
+			hi->m_measures.m_fire_point_offset.y,
+			hi->m_measures.m_fire_point_offset.z)
+		.c_str());
+	pHudCfg.w_string(sect_name,
+		"fire_point2",
+		make_string("%f,%f,%f",
+			hi->m_measures.m_fire_point2_offset.x,
+			hi->m_measures.m_fire_point2_offset.y,
+			hi->m_measures.m_fire_point2_offset.z)
+		.c_str());
+	pHudCfg.w_string(sect_name,
+		"shell_point",
+		make_string("%f,%f,%f",
+			hi->m_measures.m_shell_point_offset.x,
+			hi->m_measures.m_shell_point_offset.y,
+			hi->m_measures.m_shell_point_offset.z)
+		.c_str());
+	if(const auto Wpn = smart_cast<CWeapon*>(hi->m_parent_hud_item))
+	{
+		pHudCfg.w_string(sect_name,
+			"laserdot_attach_offset",
+			make_string("%f,%f,%f",
+				Wpn->laserdot_attach_offset.x,
+				Wpn->laserdot_attach_offset.y,
+				Wpn->laserdot_attach_offset.z)
+			.c_str());
+		pHudCfg.w_string(sect_name,
+			"torch_attach_offset",
+			make_string("%f,%f,%f",
+				Wpn->flashlight_attach_offset.x,
+				Wpn->flashlight_attach_offset.y,
+				Wpn->flashlight_attach_offset.z)
+			.c_str());
+	}
+
 	//-----------------//
 	Msg("[%s] HUD data saved to %s", __FUNCTION__, fname);
 	Sleep(250);
