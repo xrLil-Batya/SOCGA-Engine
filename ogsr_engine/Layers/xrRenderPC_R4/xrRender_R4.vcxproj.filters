@@ -729,7 +729,6 @@
     <ClInclude Include="..\xrRender\Debug\dxPixEventWrapper.h">
       <Filter>Debug</Filter>
     </ClInclude>
-    <ClInclude Include="..\xrRenderDX10\imgui_impl_dx11.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -1338,6 +1337,5 @@
     <ClCompile Include="..\xrRender\RenderTargetPhaseSSSS.cpp">
       <Filter>Core_Target</Filter>
     </ClCompile>
-    <ClCompile Include="..\xrRenderDX10\imgui_impl_dx11.cpp" />
   </ItemGroup>
 </Project>

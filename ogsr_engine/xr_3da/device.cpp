@@ -21,6 +21,8 @@
 //#include "xrSash.h"
 #include "igame_persistent.h"
 #include <imgui.h>
+#include "backends\imgui_impl_dx11.h"
+#include "backends\imgui_impl_win32.h"
 
 //#define SHOW_SECOND_THREAD_STATS
 
@@ -34,6 +36,11 @@ ENGINE_API int g_3dscopes_fps_factor = 2; // На каком кадре с мо�
 // need for imgui
 static INT64 g_Time = 0;
 static INT64 g_TicksPerSecond = 0;
+
+ENGINE_API char* d_texture_name = new char[100]{'\0'};
+ENGINE_API float d_material_weight{};
+ENGINE_API int d_material{};
+ENGINE_API bool override_material{};
 
 BOOL g_bLoaded = FALSE;
 // static ref_light precache_light{};
@@ -142,7 +149,10 @@ void CRenderDevice::End(void)
         g_SASH.DisplayFrame(Device.fTimeGlobal);*/
 	extern BOOL g_appLoaded;
 	if (g_appLoaded)
+	{
 		ImGui::Render();
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	}
 
     m_pRender->End();
     // RCache.OnFrameEnd	();
@@ -205,21 +215,9 @@ void ImGui_NewFrame()
 	io.DeltaTime = (float)(current_time - g_Time) / g_TicksPerSecond;
 	g_Time = current_time;
 
-	// Read keyboard modifiers inputs
-	//io.KeyCtrl = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
-	//io.KeyShift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
-	//io.KeyAlt =  (GetKeyState(VK_MENU) & 0x8000) != 0;
-	//io.KeySuper = false;
-	// io.KeysDown : filled by WM_KEYDOWN/WM_KEYUP events
-	// io.MousePos : filled by WM_MOUSEMOVE events
-	// io.MouseDown : filled by WM_*BUTTON* events
-	// io.MouseWheel : filled by WM_MOUSEWHEEL events
-
-	// Hide OS mouse cursor if ImGui is drawing it
-	//if (io.MouseDrawCursor)
-	//	SetCursor(NULL);
-
 	// Start the frame
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 }
 

@@ -2125,6 +2125,9 @@
     <Filter Include="AI\AScript\ScriptClasses\UI\LoadScreen">
       <UniqueIdentifier>{a98119e5-515e-4cbe-844d-ef75fbe162e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Embedded Editors">
+      <UniqueIdentifier>{33a58b05-03ed-4811-9c59-957189fbca13}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mt_config.h">
@@ -6117,9 +6120,18 @@
       <Filter>Core\Client\Objects\items &amp; weapons\Devices\Detectors</Filter>
     </ClInclude>
     <ClInclude Include="Flashlight.h" />
-    <ClInclude Include="embedded_editor\embedded_editor_helper.h" />
-    <ClInclude Include="embedded_editor\embedded_editor_main.h" />
-    <ClInclude Include="embedded_editor\embedded_editor_hud.h" />
+    <ClInclude Include="embedded_editor\embedded_editor_helper.h">
+      <Filter>Embedded Editors</Filter>
+    </ClInclude>
+    <ClInclude Include="embedded_editor\embedded_editor_hud.h">
+      <Filter>Embedded Editors</Filter>
+    </ClInclude>
+    <ClInclude Include="embedded_editor\embedded_editor_main.h">
+      <Filter>Embedded Editors</Filter>
+    </ClInclude>
+    <ClInclude Include="embedded_editor\embedded_material_editor.h">
+      <Filter>Embedded Editors</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -8932,9 +8944,18 @@
       <Filter>Core\Client\Objects\items &amp; weapons\Devices\Detectors</Filter>
     </ClCompile>
     <ClCompile Include="Flashlight.cpp" />
-    <ClCompile Include="embedded_editor\embedded_editor_helper.cpp" />
-    <ClCompile Include="embedded_editor\embedded_editor_main.cpp" />
-    <ClCompile Include="embedded_editor\embedded_editor_hud.cpp" />
+    <ClCompile Include="embedded_editor\embedded_editor_helper.cpp">
+      <Filter>Embedded Editors</Filter>
+    </ClCompile>
+    <ClCompile Include="embedded_editor\embedded_editor_hud.cpp">
+      <Filter>Embedded Editors</Filter>
+    </ClCompile>
+    <ClCompile Include="embedded_editor\embedded_editor_main.cpp">
+      <Filter>Embedded Editors</Filter>
+    </ClCompile>
+    <ClCompile Include="embedded_editor\embedded_material_editor.cpp">
+      <Filter>Embedded Editors</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuildStep Include="Explosive.h">

@@ -453,7 +453,9 @@ BOOL	CResourceManager::_GetDetailTexture(LPCSTR Name,LPCSTR& T, R_constant_setup
 
 xr_vector<ITexture*> CResourceManager::FindTexture(const char* Name) const
 {
-    R_ASSERT(Name && strlen(Name));
+    R_ASSERT(Name);
+    if(!strlen(Name))
+        return xr_vector<ITexture*>();
 
     string_path filename;
     strcpy_s(filename, Name);

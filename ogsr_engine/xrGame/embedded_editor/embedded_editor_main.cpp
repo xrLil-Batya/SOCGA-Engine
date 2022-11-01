@@ -4,6 +4,7 @@
 #include "../xr_level_controller.h"
 #include "embedded_editor_helper.h"
 #include "embedded_editor_hud.h"
+#include "embedded_material_editor.h"
 #include "../../build_config_defines.h"
 #include <addons/imguinodegrapheditor/imguinodegrapheditor.h>
 #include <dinput.h>
@@ -12,14 +13,13 @@
 bool bShowWindow = true;
 bool show_weather_window = false;
 bool show_hud_editor = false;
+bool show_material_editor = false;
 /*bool show_info_window = false;
 bool show_prop_window = false;
 bool show_restr_window = false;
 bool show_shader_window = false;
 bool show_occ_window = false;
 bool show_node_editor = false;*/
-
-static bool isAlt = false;
 
 enum class EditorStage {
     None,
@@ -35,7 +35,8 @@ bool IsEditor() { return stage != EditorStage::None; }
 
 void ShowMain()
 {
-	ImguiWnd wnd("Main");
+	bool show = true;
+	ImguiWnd wnd("Main", &show);
 	if (wnd.Collapsed)
 		return;
 
@@ -46,6 +47,8 @@ void ShowMain()
 		show_weather_window ^= 1;*/
 	if (ImGui::Button("HUD Editor"))
 		show_hud_editor = !show_hud_editor;
+    if (ImGui::Button("Material Editor"))
+        show_material_editor = !show_material_editor;
 	ImGui::Text(
 		"Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 }
@@ -67,6 +70,8 @@ void ShowEditor()
         ShowWeatherEditor(show_weather_window);*/
 	if (show_hud_editor)
 		ShowHudEditor(show_hud_editor);
+    if (show_material_editor)
+        ShowMaterialEditor(show_material_editor);
     /*if (show_prop_window)
         ShowPropEditor(show_prop_window);
 	if (show_lua_binder)
@@ -75,15 +80,13 @@ void ShowEditor()
 		ShowLogicEditor(show_logic_editor);*/
 }
 
-bool isRControl = false, isLControl = false, isRShift = false, isLShift = false;
+static bool isRControl{}, isLControl{}, isRShift{}, isLShift{};
 bool Editor_KeyPress(int key)
 {
 	if (key == DIK_F10)
 	{
 		stage = static_cast<EditorStage>((static_cast<int>(stage) + 1) % static_cast<int>(EditorStage::Count));
 	}
-	else if (key == DIK_RALT || key == DIK_LALT)
-		isAlt = true;
 
     if (!IsEditorActive())
         return false;
@@ -130,8 +133,7 @@ bool Editor_KeyPress(int key)
 	case DIK_NUMPAD6:
 	case DIK_NUMPAD7:
 	case DIK_NUMPAD8:
-	case DIK_NUMPAD9:
-		io.AddInputCharacter('0' + key - DIK_NUMPAD0);
+	case DIK_NUMPAD9: io.AddInputCharacter(unsigned int('0' + key - DIK_NUMPAD0));
 		break;
     default: 
         if (key < 512)
@@ -157,8 +159,6 @@ bool Editor_KeyPress(int key)
 
 bool Editor_KeyRelease(int key)
 {
-    if (key == DIK_RALT || key == DIK_LALT)
-        isAlt = false;
     bool active = IsEditorActive();
 
     ImGuiIO& io = ImGui::GetIO();

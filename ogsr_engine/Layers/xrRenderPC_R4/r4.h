@@ -242,6 +242,13 @@ public:
         CTexture* T = RCache.get_ActiveTexture(u32(C->samp.index));
         VERIFY(T);
         float mtl = T->m_material;
+        extern ENGINE_API char* d_texture_name;
+        extern ENGINE_API float d_material_weight;
+        extern ENGINE_API int d_material;
+        extern ENGINE_API bool override_material;
+
+        if (override_material && (xr_strcmp(T->cName, d_texture_name) == 0))
+            mtl = d_material + d_material_weight;
 #ifdef DEBUG
         if (ps_r2_ls_flags.test(R2FLAG_GLOBALMATERIAL))
             mtl = ps_r2_gmaterial;

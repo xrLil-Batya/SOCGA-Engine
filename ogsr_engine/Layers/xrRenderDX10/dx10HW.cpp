@@ -12,7 +12,8 @@
 #include "../../xr_3da/xr_input.h"
 #include "../../Include/xrAPI/xrAPI.h"
 #include <imgui.h>
-#include "imgui_impl_dx11.h"
+#include "backends\imgui_impl_dx11.h"
+#include "backends\imgui_impl_win32.h"
 
 #include "StateManager\dx10SamplerStateCache.h"
 #include "StateManager\dx10StateCache.h"
@@ -176,7 +177,21 @@ void CHW::CreateDevice(HWND m_hWnd, bool move_window)
 
     updateWindowProps(m_hWnd);
     fill_vid_mode_list(this);
-	ImGui_ImplDX11_Init(m_hWnd, pDevice, pContext);
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsLight();
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplWin32_Init(m_hWnd);
+    ImGui_ImplDX11_Init(pDevice, pContext);
 }
 
 void CHW::CreateSwapChain(HWND hwnd)
@@ -289,7 +304,10 @@ bool CHW::CreateSwapChain2(HWND hwnd)
 
 void CHW::DestroyDevice()
 {
-	ImGui_ImplDX11_Shutdown();
+    // Cleanup
+    ImGui_ImplWin32_Shutdown();
+    ImGui_ImplDX11_Shutdown();
+    ImGui::DestroyContext();
 
     //	Destroy state managers
     StateManager.Reset();
@@ -346,7 +364,6 @@ void CHW::DestroyDevice()
 //////////////////////////////////////////////////////////////////////
 void CHW::Reset(HWND hwnd)
 {
-	ImGui_ImplDX11_InvalidateDeviceObjects();
     DXGI_SWAP_CHAIN_DESC& cd = m_ChainDesc;
 
     BOOL bWindowed = !psDeviceFlags.is(rsFullscreen);
@@ -383,7 +400,6 @@ void CHW::Reset(HWND hwnd)
     UpdateViews();
 
     updateWindowProps(hwnd);
-	ImGui_ImplDX11_CreateDeviceObjects();
 }
 
 bool CHW::UsingFlipPresentationModel() const
