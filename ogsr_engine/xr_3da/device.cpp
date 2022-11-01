@@ -21,6 +21,7 @@
 //#include "xrSash.h"
 #include "igame_persistent.h"
 #include <imgui.h>
+#include <addons/ImGuizmo/ImGuizmo.h>
 #include "backends\imgui_impl_dx11.h"
 #include "backends\imgui_impl_win32.h"
 
@@ -38,8 +39,8 @@ static INT64 g_Time = 0;
 static INT64 g_TicksPerSecond = 0;
 
 ENGINE_API char* d_texture_name = new char[100]{'\0'};
-ENGINE_API float d_material_weight{};
-ENGINE_API int d_material{};
+ENGINE_API float d_material_weight = 0.5f;
+ENGINE_API int d_material = 1;
 ENGINE_API bool override_material{};
 
 BOOL g_bLoaded = FALSE;
@@ -219,6 +220,7 @@ void ImGui_NewFrame()
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
+	ImGuizmo::BeginFrame();
 }
 
 void CRenderDevice::on_idle()
