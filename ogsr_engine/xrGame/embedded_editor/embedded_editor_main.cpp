@@ -47,7 +47,7 @@ void ShowMain()
 		show_weather_window ^= 1;*/
 	if (ImGui::Button("HUD Editor"))
 		show_hud_editor = !show_hud_editor;
-    if (ImGui::Button("Material Editor"))
+    if (ImGui::Button("Texture Material Editor"))
         show_material_editor = !show_material_editor;
 	ImGui::Text(
 		"Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);

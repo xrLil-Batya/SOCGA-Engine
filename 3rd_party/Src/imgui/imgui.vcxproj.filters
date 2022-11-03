@@ -54,6 +54,15 @@
     <ClCompile Include="addons\ImGuizmo\ImSequencer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="addons\ImGuizmo\GraphEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="addons\ImGuizmo\ImCurveEdit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="addons\ImGuizmo\ImGradient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui.h">
@@ -111,6 +120,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="addons\ImGuizmo\ImSequencer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="addons\ImGuizmo\GraphEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="addons\ImGuizmo\ImCurveEdit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="addons\ImGuizmo\ImGradient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="addons\ImGuizmo\ImZoomSlider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -218,6 +218,9 @@
   <ItemGroup>
     <ClCompile Include="addons\ImGuiColorTextEdit\TextEditor.cpp" />
     <ClCompile Include="addons\imguinodegrapheditor\imguinodegrapheditor.cpp" />
+    <ClCompile Include="addons\ImGuizmo\GraphEditor.cpp" />
+    <ClCompile Include="addons\ImGuizmo\ImCurveEdit.cpp" />
+    <ClCompile Include="addons\ImGuizmo\ImGradient.cpp" />
     <ClCompile Include="addons\ImGuizmo\ImGuizmo.cpp" />
     <ClCompile Include="addons\ImGuizmo\ImSequencer.cpp" />
     <ClCompile Include="backends\imgui_impl_dx11.cpp" />
@@ -232,8 +235,12 @@
   <ItemGroup>
     <ClInclude Include="addons\ImGuiColorTextEdit\TextEditor.h" />
     <ClInclude Include="addons\imguinodegrapheditor\imguinodegrapheditor.h" />
+    <ClInclude Include="addons\ImGuizmo\GraphEditor.h" />
+    <ClInclude Include="addons\ImGuizmo\ImCurveEdit.h" />
+    <ClInclude Include="addons\ImGuizmo\ImGradient.h" />
     <ClInclude Include="addons\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="addons\ImGuizmo\ImSequencer.h" />
+    <ClInclude Include="addons\ImGuizmo\ImZoomSlider.h" />
     <ClInclude Include="backends\imgui_impl_dx11.h" />
     <ClInclude Include="backends\imgui_impl_metal.h" />
     <ClInclude Include="backends\imgui_impl_win32.h" />

@@ -4,6 +4,10 @@
 #include "player_hud.h"
 #include "WeaponMagazined.h"
 #include "embedded_editor_helper.h"
+#include <addons/ImGuizmo/ImGuizmo.h>
+#include "actor.h"
+#include "../xr_3da/camerabase.h"
+#include "../xr_3da/IGame_Persistent.h"
 
 void ShowHudEditor(bool& show)
 {
@@ -14,6 +18,10 @@ void ShowHudEditor(bool& show)
     if (!g_player_hud)
         return;
 
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+    ImGuizmo::OPERATION mode = io.KeyCtrl ? ImGuizmo::ROTATE : ImGuizmo::TRANSLATE;
+
     auto item = g_player_hud->attached_item(0);
 	if (item)
 	{
@@ -22,8 +30,22 @@ void ShowHudEditor(bool& show)
         ImGui::InputFloat3("hands_position 0", (float*)&item->m_measures.m_hands_attach[0]);
         ImGui::InputFloat3("hands_orientation 0", (float*)&item->m_measures.m_hands_attach[1]);
         ImGui::Separator();
+
+        auto& pos = item->m_measures.m_item_attach;
+        ImGuizmo::Manipulate((float*)&Device.mView, (float*)&Device.mProject, mode, ImGuizmo::WORLD,
+                             (float*)&item->m_attach_offset);
+        if (ImGuizmo::IsUsing())
+        {
+            Fvector ypr;
+            item->m_attach_offset.getHPB(ypr.x, ypr.y, ypr.z);
+            ypr.mul(180.f / PI);
+            pos[1] = ypr;
+            pos[0] = item->m_attach_offset.c;
+        }
+
         ImGui::InputFloat3("item_position 0", (float*)&item->m_measures.m_item_attach[0]);
         ImGui::InputFloat3("item_orientation 0", (float*)&item->m_measures.m_item_attach[1]);
+
         ImGui::Separator();
         ImGui::InputFloat3("aim_hud_offset_pos 0", (float*)&item->m_measures.m_hands_offset[0][1]);
         ImGui::InputFloat3("aim_hud_offset_rot 0", (float*)&item->m_measures.m_hands_offset[1][1]);
